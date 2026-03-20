@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import JobDetailPanel from '../components/JobDetailPanel'
 
 export default function Dashboard() {
   const [data, setData] = useState<any[]>([])
   const [currentDay, setCurrentDay] = useState<any>({ jobs: [], funded: [], stealth: [] })
   const [activeTab, setActiveTab] = useState('jobs')
   const [theme, setTheme] = useState('dark')
+  const [selectedJob, setSelectedJob] = useState<any>(null)
 
   // Search & Filter
   const [search, setSearch] = useState('')
@@ -147,8 +149,36 @@ export default function Dashboard() {
 
             <div className="flex flex-col">
               {jobs.map((j: any, i: number) => (
-                <div key={i} className="flex items-center justify-between py-5 border-b border-[var(--apple-border)] transition-all hover:bg-[var(--apple-hover)] group px-2 rounded-lg -mx-2">
+                import { useState, useEffect } from 'react'
+import JobDetailPanel from '../components/JobDetailPanel'
+
+export default function Dashboard() {
+  const [data, setData] = useState<any[]>([])
+  const [currentDay, setCurrentDay] = useState<any>({ jobs: [], funded: [], stealth: [] })
+  const [activeTab, setActiveTab] = useState('jobs')
+  const [theme, setTheme] = useState('dark')
+  const [selectedJob, setSelectedJob] = useState<any>(null)
+
+  // ... (rest of the file)
+  
+                <div key={i} className="flex items-center justify-between py-5 border-b border-[var(--apple-border)] transition-all hover:bg-[var(--apple-hover)] group px-2 rounded-lg -mx-2 cursor-pointer" onClick={() => setSelectedJob(j)}>
                   <div className="flex-1">
+  
+  // ... (rest of the file)
+
+      <main className="px-6 py-10 max-w-7xl mx-auto">
+        {/* ... (rest of the main content) */}
+      </main>
+
+      {selectedJob && <JobDetailPanel job={selectedJob} onClose={() => setSelectedJob(null)} />}
+
+      <footer className="py-20 text-center opacity-30 text-[10px] font-black uppercase tracking-[0.5em]">
+        Job Hunter Pro System • 2026
+      </footer>
+    </div>
+  )
+}
+
                     <div className="flex items-center gap-3 mb-1">
                       <a href={j.link} target="_blank" rel="noreferrer" className="text-lg font-bold hover:text-[var(--apple-accent)] transition-colors">
                         {j.title}
@@ -223,6 +253,8 @@ export default function Dashboard() {
         )}
 
       </main>
+
+      <JobDetailPanel job={selectedJob} onClose={() => setSelectedJob(null)} />
 
       <footer className="py-20 text-center opacity-30 text-[10px] font-black uppercase tracking-[0.5em]">
         Job Hunter Pro System • 2026
