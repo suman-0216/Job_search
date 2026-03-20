@@ -16,8 +16,6 @@ export default function Login({ envUser, envPass }: LoginProps) {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Check against props passed from server-side (Vercel Env Vars)
-    // Fallback to defaults if env vars are missing
     const targetUser = envUser || 'Suman'
     const targetPass = envPass || 'Suman@16'
 
@@ -30,42 +28,57 @@ export default function Login({ envUser, envPass }: LoginProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="bg-[#1d1d1f] p-8 rounded-[18px] border border-[#333336] w-full max-w-sm shadow-2xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Job Hunter <span className="text-transparent bg-clip-text bg-gradient-to-br from-[#2997ff] to-[#ab61ff]">Pro</span></h1>
-          <p className="text-[#86868b] text-sm">Sign in to your private pipeline</p>
+    <div className="min-h-screen flex items-center justify-center bg-[var(--apple-bg)] font-sans antialiased text-[var(--apple-text)]">
+      <div className="w-full max-w-[400px] px-8 py-12 flex flex-col items-center">
+        
+        <div className="mb-12 text-center">
+          <div className="w-16 h-16 bg-[var(--apple-accent)] text-white rounded-2xl flex items-center justify-center text-3xl shadow-xl mx-auto mb-6 transform hover:rotate-12 transition-transform">
+            🚀
+          </div>
+          <h1 className="text-3xl font-black tracking-tighter mb-2">Job Hunter <span className="text-[var(--apple-accent)]">Pro</span></h1>
+          <p className="text-[13px] text-[var(--apple-text-muted)] font-medium uppercase tracking-widest">Secure Career Pipeline</p>
         </div>
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-4">
+        <form onSubmit={handleLogin} className="w-full flex flex-col gap-5">
           <div>
-            <label className="block text-xs font-semibold text-[#86868b] uppercase tracking-wide mb-1">Username</label>
+            <label className="block text-[11px] font-bold text-[var(--apple-text-muted)] uppercase tracking-[0.15em] mb-2 px-1">Identity</label>
             <input 
               type="text" 
-              className="w-full p-3 bg-[#1d1d1f] border border-[#333336] rounded-lg text-white" 
+              className="apple-input w-full p-4 text-[14px] font-medium" 
+              placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-[#86868b] uppercase tracking-wide mb-1">Password</label>
+            <label className="block text-[11px] font-bold text-[var(--apple-text-muted)] uppercase tracking-[0.15em] mb-2 px-1">Passkey</label>
             <input 
               type="password" 
-              className="w-full p-3 bg-[#1d1d1f] border border-[#333336] rounded-lg text-white"
+              className="apple-input w-full p-4 text-[14px] font-medium"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
-          {error && <p className="text-[#ff3b30] text-sm text-center">{error}</p>}
+          {error && (
+            <div className="text-[var(--apple-error)] text-[12px] font-bold text-center bg-[rgba(255,69,58,0.1)] py-2 rounded-lg">
+              Authentication Failed
+            </div>
+          )}
           <button 
             type="submit" 
-            className="mt-4 bg-[#2997ff] hover:bg-[#147ce5] text-white font-medium py-3 px-4 rounded-lg transition-all shadow-[0_0_0_1px_rgba(41,151,255,0.1)]"
+            className="apple-btn-primary w-full py-4 mt-4 text-[14px] font-bold uppercase tracking-widest shadow-lg"
           >
-            Sign In
+            Authorize Access
           </button>
         </form>
+
+        <p className="mt-12 text-[11px] text-[var(--apple-text-muted)] font-medium text-center leading-relaxed">
+          Proprietary Dashboard for Executive Career Infiltration. <br/>
+          Unauthorized access is logged.
+        </p>
       </div>
     </div>
   )
