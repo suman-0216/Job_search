@@ -1,0 +1,26 @@
+{
+  "name": "job_search",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://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@github.com/suman-0216/Job_search.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/suman-0216/Job_search/issues"
+  },
+  "homepage": "https://github.com/suman-0216/Job_search#readme",
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "fs-extra": "^11.3.4",
+    "playwright": "^1.58.2",
+    "xml2js": "^0.6.2"
+  }
+}
