@@ -25,11 +25,19 @@ export default function Dashboard() {
     }
     
     fetch('/api/data')
-      .then(res => res.json())
-      .then(allData => {
-        setData(allData)
-        if (allData.length) setCurrentDay(allData[0])
+      .then(res => {
+        if (!res.ok) throw new Error('Network response was not ok')
+        return res.json()
       })
+      .then(allData => {
+        if (Array.isArray(allData)) {
+          setData(allData)
+          if (allData.length > 0) {
+            setCurrentDay(allData[0])
+          }
+        }
+      })
+      .catch(err => console.error("Error fetching data:", err))
   }, [])
 
   useEffect(() => {
@@ -44,11 +52,15 @@ export default function Dashboard() {
 
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
 
-  const loadDay = (date: string) => setCurrentDay(data.find(d => d.date === date) || data[0])
+  const loadDay = (date: string) => {
+    const day = data.find(d => d.date === date)
+    if (day) setCurrentDay(day)
+  }
 
   // Processing Jobs
-  let jobs = (currentDay?.jobs || []).filter((j: any) => {
-    const text = (j.title + ' ' + j.companyName + ' ' + j.company + ' ' + j.location).toLowerCase()
+  const rawJobs = Array.isArray(currentDay?.jobs) ? currentDay.jobs : []
+  let jobs = rawJobs.filter((j: any) => {
+    const text = ((j.title || '') + ' ' + (j.companyName || j.company || '') + ' ' + (j.location || '')).toLowerCase()
     if (search && !text.includes(search.toLowerCase())) return false
     if (typeFilter && j.employmentType !== typeFilter) return false
     if (remoteFilter === 'remote' && !j.workRemoteAllowed && !text.includes('remote')) return false
@@ -65,8 +77,8 @@ export default function Dashboard() {
       valA = parseInt(a.applicantsCount || a.applicants) || 0
       valB = parseInt(b.applicantsCount || b.applicants) || 0
     } else if (sortCol === 'postedAt' || sortCol === 'date') {
-      valA = new Date(a.postedAt || a.date).getTime()
-      valB = new Date(b.postedAt || b.date).getTime()
+      valA = new Date(a.postedAt || a.date || 0).getTime()
+      valB = new Date(b.postedAt || b.date || 0).getTime()
     } else if (sortCol === 'startup_score' || sortCol === 'score') {
       valA = a.startup_score || a.score || 0
       valB = b.startup_score || b.score || 0
@@ -84,7 +96,9 @@ export default function Dashboard() {
 
   const timeAgo = (dateStr: string) => {
     if (!dateStr) return 'Unknown'
-    const hrs = Math.floor((Date.now() - new Date(dateStr).getTime()) / 3600000)
+    const timestamp = new Date(dateStr).getTime()
+    if (isNaN(timestamp)) return dateStr // Return raw string if not a date
+    const hrs = Math.floor((Date.now() - timestamp) / 3600000)
     if (hrs < 1) return 'Just now'
     if (hrs < 24) return hrs + 'h ago'
     return Math.floor(hrs/24) + 'd ago'
@@ -128,9 +142,10 @@ export default function Dashboard() {
             <select 
               className="bg-transparent border border-[#0071e3] text-[#0071e3] font-semibold text-sm rounded-md px-3 py-1 cursor-pointer outline-none"
               onChange={(e) => loadDay(e.target.value)}
+              value={currentDay?.date || ''}
             >
               {data.map(d => (
-                <option key={d.date} value={d.date}>{d.date} ({d.jobs.length} jobs)</option>
+                <option key={d.date} value={d.date}>{d.date} ({Array.isArray(d.jobs) ? d.jobs.length : 0} jobs)</option>
               ))}
             </select>
           </div>
@@ -262,7 +277,7 @@ export default function Dashboard() {
         {/* FUNDED */}
         {activeTab === 'funded' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in-up">
-            {currentDay.funded?.length ? currentDay.funded.map((f: any, i: number) => (
+            {Array.isArray(currentDay?.funded) && currentDay.funded.length ? currentDay.funded.map((f: any, i: number) => (
               <div key={i} className="apple-card p-5 flex flex-col">
                 <h3 className="text-[16px] font-bold mb-3">{f.company_name || f.company || f.searchResult?.title || 'Startup'}</h3>
                 <div className="flex gap-4 mb-3 text-[12px] text-[var(--apple-text-muted)] bg-[var(--apple-input-bg)] p-3 rounded-lg">
@@ -285,7 +300,7 @@ export default function Dashboard() {
         {/* STEALTH */}
         {activeTab === 'stealth' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up">
-            {currentDay.stealth?.length ? currentDay.stealth.map((c: any, i: number) => (
+            {Array.isArray(currentDay?.stealth) && currentDay.stealth.length ? currentDay.stealth.map((c: any, i: number) => (
               <div key={i} className="apple-card p-5">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="text-[16px] font-bold">{c.description || c.company || 'Stealth Company'}</h3>
