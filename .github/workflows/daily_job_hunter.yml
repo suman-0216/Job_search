@@ -1,37 +1,36 @@
-name: Daily Job Hunter Scraper
+name: Daily Job Hunt
 
 on:
   schedule:
-    - cron: '0 10 * * *' # Runs daily at 10 AM UTC
-  workflow_dispatch: # Allows manual run
+    - cron: '0 14 * * *' # 6am PST = 14:00 UTC
+  workflow_dispatch: # Allow manual trigger from GitHub UI
 
 jobs:
-  scrape-and-build:
+  scrape-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Install Dependencies
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Fetch and Build Scripts
+        env:
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+        run: npm run run-all
+
+      - name: Commit and push updated data
         run: |
-          npm install
-          npx playwright install --with-deps chromium
-
-      - name: Run Scraper
-        run: node scraper.js
-
-      - name: Commit and Push Changes
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.email "suman970629@gmail.com"
+          git config --global user.name "suman-0216"
           git add data/ public/
-          git commit -m "Auto-update: Scraped job data & generated dashboard $(date +'%Y-%m-%d')" || exit 0
+          git diff --staged --quiet || git commit -m "🤖 Daily update $(date +%Y-%m-%d)"
           git push
