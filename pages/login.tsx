@@ -9,7 +9,7 @@ export default function Login() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    if (username === 'Suman' && password === 'suman@1166') {
+    if (username === 'Suman' && password === 'Suman@16') {
       localStorage.setItem('auth', 'true')
       router.push('/')
     } else {
