@@ -1,7 +1,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
+import { GetServerSideProps } from 'next'
 
-export default function Login() {
+interface LoginProps {
+  envUser: string
+  envPass: string
+}
+
+export default function Login({ envUser, envPass }: LoginProps) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -9,7 +15,13 @@ export default function Login() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    if (username === 'Suman' && password === 'Suman@16') {
+    
+    // Check against props passed from server-side (Vercel Env Vars)
+    // Fallback to defaults if env vars are missing
+    const targetUser = envUser || 'Suman'
+    const targetPass = envPass || 'Suman@16'
+
+    if (username === targetUser && password === targetPass) {
       localStorage.setItem('auth', 'true')
       router.push('/')
     } else {
@@ -57,4 +69,13 @@ export default function Login() {
       </div>
     </div>
   )
+}
+
+export const getServerSideProps: GetServerSideProps = async () => {
+  return {
+    props: {
+      envUser: process.env.USERNAME || 'Suman',
+      envPass: process.env.PASSWORD || 'Suman@16',
+    },
+  }
 }
