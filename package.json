@@ -1,7 +1,6 @@
 {
   "name": "job-hunter-backend",
   "version": "1.0.0",
-  "type": "module",
   "description": "Automated scripts to fetch job data for the AI Job Hunter dashboard.",
   "main": "scripts/fetch_jobs.js",
   "scripts": {
