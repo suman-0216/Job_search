@@ -1,0 +1,49 @@
+name: Daily Job Hunt
+
+on:
+  schedule:
+    # Cron schedules are in UTC.
+    # 6:30 AM PST is 14:30 UTC during Daylight Time
+    # 9:00 AM PST is 17:00 UTC
+    # 12:00 PM PST is 20:00 UTC
+    - cron: '30 14 * * *'
+    - cron: '0 17 * * *'
+    - cron: '0 20 * * *'
+  workflow_dispatch: # Allows manual triggering from the GitHub UI
+
+jobs:
+  scrape-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Fetch jobs data
+        env:
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: npm run fetch
+
+      - name: Clean up old data (older than 5 days)
+        run: npm run clean
+
+      - name: Commit and push updated data
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "Job Hunter Bot"
+          git add data/
+          # Check if there are changes to commit
+          if ! git diff --staged --quiet; then
+            git commit -m "🤖 Daily data update $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            git push
+          else
+            echo "No changes to commit."
+          fi

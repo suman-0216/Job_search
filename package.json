@@ -1,28 +1,17 @@
 {
-    "name":  "job-search",
-    "version":  "0.1.0",
-    "private":  true,
-    "scripts":  {
-                    "dev":  "next dev",
-                    "build":  "next build",
-                    "start":  "next start",
-                    "lint":  "next lint",
-                    "run-all":  "node scripts/run-all.js"
-                },
-    "dependencies":  {
-                         "next":  "14.2.3",
-                         "react":  "^18",
-                         "react-dom":  "^18"
-                     },
-    "devDependencies":  {
-                            "@types/node":  "^20",
-                            "@types/react":  "^18",
-                            "@types/react-dom":  "^18",
-                            "autoprefixer":  "^10.4.27",
-                            "eslint":  "^8",
-                            "eslint-config-next":  "14.2.3",
-                            "postcss":  "^8",
-                            "tailwindcss":  "^3.4.1",
-                            "typescript":  "^5"
-                        }
+  "name": "job-hunter-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Automated scripts to fetch job data for the AI Job Hunter dashboard.",
+  "main": "scripts/fetch_jobs.js",
+  "scripts": {
+    "fetch": "node scripts/fetch_jobs.js",
+    "clean": "node scripts/clean_old_data.js",
+    "run-all": "npm run fetch && npm run clean"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "node-fetch": "^3.3.2",
+    "@google/generative-ai": "^0.11.3"
+  }
 }
