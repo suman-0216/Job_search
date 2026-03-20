@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Hunter Pro</title>
+<style>
+:root {
+  --bg: #000000;
+  --surface: #1d1d1f;
+  --surface-hover: #2d2d2f;
+  --surface-glass: rgba(29, 29, 31, 0.72);
+  --text: #f5f5f7;
+  --text-secondary: #86868b;
+  --accent: #2997ff;
+  --accent-hover: #147ce5;
+  --border: #333336;
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --red: #ff3b30;
+  --orange: #ff9500;
+  --green: #34c759;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+  overflow-y: scroll;
+}
+
+/* Header & Hero */
+header {
+  text-align: center;
+  padding: 80px 20px 40px;
+}
+
+h1 {
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin-bottom: 16px;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #2997ff 0%, #ab61ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  font-size: 21px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Glassmorphic Navigation */
+.glass-nav {
+  position: sticky;
+  top: 0;
+  background: var(--surface-glass);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  z-index: 100;
+  padding: 14px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.tab {
+  background: transparent;
+  color: var(--text);
+  border: none;
+  padding: 8px 18px;
+  font-size: 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.tab:hover { background: rgba(255,255,255,0.1); }
+.tab.active { background: var(--text); color: var(--bg); }
+
+/* Main Container */
+.container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+input, select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  outline: none;
+  font-size: 15px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+input:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(41, 151, 255, 0.2);
+}
+
+input { flex-grow: 1; min-width: 250px; }
+
+/* Panes */
+.pane { display: none; animation: fadeIn 0.4s ease; }
+.pane.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Cards & Tables */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  border: 1px solid var(--border);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border-color: rgba(255,255,255,0.15);
+}
+
+.card-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.01em; }
+.card-subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 16px; }
+
+.table-container {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 16px 20px; color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
+th:hover { color: var(--text); }
+td { padding: 16px 20px; border-bottom: 1px solid var(--border); font-size: 15px; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface-hover); }
+
+.job-title { font-weight: 600; color: var(--text); text-decoration: none; }
+.job-title:hover { color: var(--accent); }
+.company-name { color: var(--text-secondary); font-size: 13px; margin-top: 4px; display: block; }
+
+/* Badges */
+.badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge.hot { background: rgba(255, 59, 48, 0.15); color: var(--red); }
+.badge.fresh { background: rgba(52, 199, 89, 0.15); color: var(--green); }
+.badge.remote { background: rgba(255, 149, 0, 0.15); color: var(--orange); }
+
+/* Buttons */
+.btn {
+  background: var(--accent);
+  color: white;
+  padding: 8px 18px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+}
+.btn:hover { background: var(--accent-hover); transform: scale(1.02); }
+.btn-secondary { background: rgba(255,255,255,0.1); color: var(--text); }
+.btn-secondary:hover { background: rgba(255,255,255,0.15); }
+
+/* Outreach specific */
+textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 120px;
+  margin-bottom: 12px;
+}
+textarea:focus { border-color: var(--accent); outline: none; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Job Hunter <span class="gradient-text">Pro</span></h1>
+  <p class="subtitle">AI-curated pipeline for Founding Engineers</p>
+</header>
+
+<div class="glass-nav">
+  <select id="dateSelect" onchange="loadDay(this.value)" style="margin-right: 20px; background: transparent; border: none; font-weight: 600;">
+    DATES_PLACEHOLDER
+  </select>
+  <button class="tab active" onclick="switchTab('jobs')">Jobs</button>
+  <button class="tab" onclick="switchTab('funded')">Funded Startups</button>
+  <button class="tab" onclick="switchTab('stealth')">Stealth</button>
+  <button class="tab" onclick="switchTab('outreach')">Outreach Engine</button>
+</div>
+
+<div class="container">
+
+  <!-- JOBS PANE -->
+  <div id="pane-jobs" class="pane active">
+    <div class="toolbar">
+      <input type="text" id="search" placeholder="Search roles, companies, locations..." oninput="renderJobs()">
+      <select id="remoteFilter" onchange="renderJobs()">
+        <option value="">All Locations</option>
+        <option value="remote">Remote Only</option>
+        <option value="sf">San Francisco Bay Area</option>
+      </select>
+    </div>
+    
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortJobs('score')">Score</th>
+            <th onclick="sortJobs('role')">Role</th>
+            <th onclick="sortJobs('applicants')">Applicants</th>
+            <th onclick="sortJobs('date')">Posted</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="jobsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FUNDED STARTUPS PANE -->
+  <div id="pane-funded" class="pane">
+    <div class="card-grid" id="fundedBody"></div>
+  </div>
+
+  <!-- STEALTH PANE -->
+  <div id="pane-stealth" class="pane">
+    <div class="card-grid" id="stealthBody"></div>
+  </div>
+
+  <!-- OUTREACH PANE -->
+  <div id="pane-outreach" class="pane">
+    <div class="toolbar">
+      <select id="companySelect" onchange="generateOutreach()" style="width:100%; max-width: 400px;">
+        <option value="">Select a company to generate outreach...</option>
+      </select>
+    </div>
+    
+    <div id="outreachContent" style="display:none;" class="card-grid">
+      <div class="card">
+        <div class="card-title">Cold Email</div>
+        <textarea id="emailText" readonly></textarea>
+        <button class="btn btn-secondary" onclick="copyText('emailText', this)">Copy Email</button>
+      </div>
+      <div class="card">
+        <div class="card-title">LinkedIn DM</div>
+        <textarea id="linkedinText" readonly style="min-height: 80px;"></textarea>
+        <button class="btn btn-secondary" onclick="copyText('linkedinText', this)">Copy DM</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const ALL_DATA = DATA_PLACEHOLDER;
+let currentDay = ALL_DATA[0] || { jobs: [], funded: [], stealth: [] };
+let sortCol = 'score', sortAsc = false;
+
+function loadDay(date) {
+  currentDay = ALL_DATA.find(d => d.date === date) || ALL_DATA[0];
+  renderJobs();
+  renderFunded();
+  renderStealth();
+  populateOutreachDropdown();
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('pane-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function timeAgo(dateString) {
+  if (!dateString) return 'Unknown';
+  const hrs = Math.floor((Date.now() - new Date(dateString)) / 3600000);
+  if (hrs < 1) return '< 1h ago';
+  if (hrs < 24) return hrs + 'h ago';
+  return Math.floor(hrs/24) + 'd ago';
+}
+
+function renderJobs() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const rf = document.getElementById('remoteFilter').value;
+  
+  let jobs = (currentDay.jobs || []).filter(j => {
+    const text = (j.title + ' ' + j.company + ' ' + j.location).toLowerCase();
+    if (q && !text.includes(q)) return false;
+    if (rf === 'remote' && !text.includes('remote')) return false;
+    if (rf === 'sf' && !text.includes('francisco') && !text.includes('ca')) return false;
+    return true;
+  });
+
+  jobs.sort((a, b) => {
+    let valA = a[sortCol] || 0;
+    let valB = b[sortCol] || 0;
+    if (sortCol === 'role') { valA = a.title; valB = b.title; }
+    if (sortCol === 'date') { valA = new Date(a.date); valB = new Date(b.date); }
+    return (valA > valB ? 1 : -1) * (sortAsc ? 1 : -1);
+  });
+
+  document.getElementById('jobsBody').innerHTML = jobs.map(j => {
+    const apps = j.applicants || 0;
+    const hotBadge = apps > 200 ? '<span class="badge hot">High Comp</span>' : '';
+    const remoteBadge = (j.location||'').toLowerCase().includes('remote') ? '<span class="badge remote">Remote</span>' : '';
+    
+    return `<tr>
+      <td><strong style="font-size: 16px;">${j.score || 0}</strong><span style="color:var(--text-secondary);font-size:12px;">/10</span></td>
+      <td>
+        <a href="${j.link}" target="_blank" class="job-title">${j.title}</a>
+        <span class="company-name">${j.company} • ${j.location} ${remoteBadge}</span>
+      </td>
+      <td>${apps} ${hotBadge}</td>
+      <td>${timeAgo(j.date)}</td>
+      <td><a href="${j.link}" target="_blank" class="btn">Apply</a></td>
+    </tr>`;
+  }).join('');
+}
+
+function sortJobs(col) {
+  if (sortCol === col) sortAsc = !sortAsc;
+  else { sortCol = col; sortAsc = false; }
+  renderJobs();
+}
+
+function renderFunded() {
+  const funded = currentDay.funded || [];
+  document.getElementById('fundedBody').innerHTML = funded.length ? funded.map(f => `
+    <div class="card">
+      <div class="card-title">${f.company}</div>
+      <div class="card-subtitle">${f.title}</div>
+      <div style="margin-top:auto; padding-top: 16px;">
+        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:8px;">📧 ${f.emailGuess}</p>
+        <p style="font-size:13px; color:var(--text-secondary);">💡 ${f.hook}</p>
+      </div>
+    </div>
+  `).join('') : '<p style="color:var(--text-secondary); padding:20px;">No new funded startups found for this date.</p>';
+}
+
+function renderStealth() {
+  const stealth = currentDay.stealth || [];
+  document.getElementById('stealthBody').innerHTML = stealth.length ? stealth.map(s => `
+    <div class="card">
+      <div class="card-title">${s.company} <span class="badge fresh" style="float:right">${s.batch||'Stealth'}</span></div>
+      <div class="card-subtitle">${s.description}</div>
+      <div style="margin-top:auto; padding-top: 16px;">
+        <p style="font-size:13px; color:var(--text-secondary);"><strong>Strategy:</strong> ${s.contactStrategy}</p>
+      </div>
+    </div>
+  `).join('') : '<p style="color:var(--text-secondary); padding:20px;">No new stealth companies found for this date.</p>';
+}
+
+function populateOutreachDropdown() {
+  const select = document.getElementById('companySelect');
+  select.innerHTML = '<option value="">Select a company to generate outreach...</option>';
+  const companies = new Set();
+  
+  (currentDay.jobs||[]).forEach(j => companies.add(j.company));
+  (currentDay.funded||[]).forEach(f => companies.add(f.company));
+  (currentDay.stealth||[]).forEach(s => companies.add(s.company));
+  
+  Array.from(companies).sort().forEach(c => {
+    if(c) select.add(new Option(c, c));
+  });
+}
+
+function generateOutreach() {
+  const company = document.getElementById('companySelect').value;
+  const panel = document.getElementById('outreachContent');
+  if(!company) { panel.style.display = 'none'; return; }
+  
+  panel.style.display = 'grid';
+  
+  document.getElementById('emailText').value = 
+    \`Subject: AI Engineering at \${company} - Driving impact\\n\\nHi [Founder Name],\\n\\nI've been following \${company}'s recent work. As an AI Engineer based in the SF Bay Area (H1B), I specialize in building autonomous agents and scalable ML systems.\\n\\nI’d love to contribute to your engineering team. Let me know if you are open to a quick chat.\\n\\nBest,\\nSuman\\nmadipeddisuman@gmail.com\`;
+    
+  document.getElementById('linkedinText').value = 
+    \`Hi [Name], I saw \${company} is scaling its AI efforts. I’m an AI Engineer based in SF building autonomous systems. Would love to connect and chat about potential engineering roles!\`;
+}
+
+function copyText(id, btn) {
+  const el = document.getElementById(id);
+  el.select();
+  document.execCommand('copy');
+  const original = btn.innerText;
+  btn.innerText = 'Copied!';
+  setTimeout(() => btn.innerText = original, 2000);
+}
+
+// Init
+if(ALL_DATA.length) loadDay(ALL_DATA[0].date);
+</script>
+</body>
+</html>
