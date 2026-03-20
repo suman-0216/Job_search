@@ -7,7 +7,11 @@
   "scripts": {
     "fetch": "node scripts/fetch_jobs.js",
     "clean": "node scripts/clean_old_data.js",
-    "run-all": "npm run fetch && npm run clean"
+    "run-all": "npm run fetch && npm run clean",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "@google/generative-ai": "^0.11.3",
