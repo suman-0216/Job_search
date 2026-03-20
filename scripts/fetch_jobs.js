@@ -2,6 +2,29 @@ import fetch from 'node-fetch';
 import fs from 'fs';
 import path from 'path';
 import 'dotenv/config';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+// --- AI SKILL EXTRACTION ---
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+if (!GOOGLE_API_KEY) throw new Error("GOOGLE_API_KEY is not defined.");
+const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+async function extractSkillsWithAI(jobDescription) {
+    if (!jobDescription || jobDescription.length < 50) return [];
+    try {
+        const prompt = `Extract the top 5-7 most important technical skills or technologies from this job description. Return them as a simple comma-separated list. Example: Python, PyTorch, AWS, Docker, Kubernetes. Job Description: "${jobDescription}"`;
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+        return text.split(',').map(skill => skill.trim()).filter(Boolean);
+    } catch (error) {
+        console.error('Error with Google AI skill extraction:', error);
+        return [];
+    }
+}
+// --- END AI SECTION ---
+
 
 const APIFY_TOKEN = process.env.APIFY_TOKEN;
 const DATA_DIR = './data';
@@ -45,7 +68,23 @@ async function scrapeLinkedInJobs() {
         "https://www.linkedin.com/jobs/search/?keywords=AI%20Engineer%20startup&f_E=1%2C2&f_TPR=r86400&geoId=102752184", // San Francisco Bay Area
         "https://www.linkedin.com/jobs/search/?keywords=Machine%20Learning%20Engineer&f_E=1%2C2&f_TPR=r86400&location=California%2C%20United%20States"
     ];
-    return await runApifyActor('curious_coder/linkedin-jobs-scraper', { startUrls: searchUrls.map(url => ({ url })) });
+    const jobs = await runApifyActor('curious_coder/linkedin-jobs-scraper', { startUrls: searchUrls.map(url => ({ url })) });
+
+    if (!Array.isArray(jobs)) {
+        console.log('No jobs returned from scraper.');
+        return [];
+    }
+
+    console.log(`Enriching ${jobs.length} jobs with AI skill tagging...`);
+    const enrichedJobs = [];
+    for (const job of jobs) {
+        await new Promise(resolve => setTimeout(resolve, 200)); 
+        const skills = await extractSkillsWithAI(job.description);
+        enrichedJobs.push({ ...job, skills });
+        console.log(`- Tagged "${job.title}" with skills: [${skills.join(', ')}]`);
+    }
+    
+    return enrichedJobs;
 }
 
 async function scrapeFundedStartups() {

@@ -12,6 +12,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const [remoteFilter, setRemoteFilter] = useState('')
+  const [skillFilter, setSkillFilter] = useState('')
 
   useEffect(() => {
     if (localStorage.theme === 'light') {
@@ -59,8 +60,12 @@ export default function Dashboard() {
     if (remoteFilter === 'remote' && !j.workRemoteAllowed && !text.includes('remote')) return false
     if (remoteFilter === 'ca' && !text.includes('california') && !text.includes(', ca')) return false
     if (remoteFilter === 'sf' && !text.includes('san francisco')) return false
+    if (skillFilter && (!j.skills || !j.skills.includes(skillFilter))) return false
     return true
   })
+
+  const allSkills = [...new Set(rawJobs.flatMap((j: any) => j.skills || []))].sort();
+
 
   const timeAgo = (dateStr: string) => {
     if (!dateStr) return '—'
@@ -134,11 +139,36 @@ export default function Dashboard() {
             <option>Full-time</option>
             <option>Contract</option>
           </select>
+          <select className="bg-transparent text-[12px] border-none outline-none cursor-pointer text-[var(--apple-text-muted)]" value={skillFilter} onChange={e => setSkillFilter(e.target.value)}>
+            <option value="">ALL SKILLS</option>
+            {allSkills.map(skill => (
+              <option key={skill} value={skill}>{skill}</option>
+            ))}
+          </select>
         </div>
       </div>
 
       <main className="px-6 py-10 max-w-7xl mx-auto">
         
+        {/* SUMMARY CARDS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 animate-fade-in-up">
+          <div className="bg-[var(--apple-hover)] p-5 rounded-xl">
+            <h3 className="text-sm font-bold text-[var(--apple-text-muted)] uppercase tracking-wider">Total Leads</h3>
+            <p className="text-4xl font-bold tracking-tight mt-1">{jobs.length}</p>
+          </div>
+          <div className="bg-[var(--apple-hover)] p-5 rounded-xl">
+            <h3 className="text-sm font-bold text-[var(--apple-text-muted)] uppercase tracking-wider">Hot Jobs (Score > 8)</h3>
+            <p className="text-4xl font-bold tracking-tight mt-1">{jobs.filter((j: any) => (j.startup_score || j.score || 0) > 8).length}</p>
+          </div>
+          <div className="bg-[var(--apple-hover)] p-5 rounded-xl">
+            <h3 className="text-sm font-bold text-[var(--apple-text-muted)] uppercase tracking-wider">Top Companies</h3>
+            <p className="text-base font-bold mt-2 truncate">
+              {/* This is a placeholder, will be implemented with skill tagging */}
+              Google, OpenAI, Anthropic
+            </p>
+          </div>
+        </div>
+
         {/* JOBS LIST - CLEAN ROWS */}
         {activeTab === 'jobs' && (
           <div className="animate-fade-in-up">
@@ -193,6 +223,13 @@ export default function Dashboard() {
                       <span>{j.location}</span>
                       <span>•</span>
                       <span className="text-[var(--apple-success)] font-bold">{j.salary || 'Market Rate'}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {j.skills && j.skills.map((skill, s_idx) => (
+                        <span key={s_idx} className="text-[10px] font-bold px-2 py-1 rounded-full bg-[var(--apple-input-bg)] text-[var(--apple-text-muted)]">
+                          {skill}
+                        </span>
+                      ))}
                     </div>
                   </div>
                   
