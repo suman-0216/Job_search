@@ -38,12 +38,8 @@ export default function JobDetailPanel({ job: rawJob, onClose }: JobDetailPanelP
     setScoredJob(scored);
     setOutreach(generatedOutreach);
     
-    // Default to the outreach tab for funded and stealth startups
-    if (scored.sourceType === 'funded' || scored.sourceType === 'stealth') {
-        setActiveTab('outreach');
-    } else {
-        setActiveTab('description');
-    }
+    // Always default to outreach tab when "Get Outreach" is clicked
+    setActiveTab('outreach');
 
     const onEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
