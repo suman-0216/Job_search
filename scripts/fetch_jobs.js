@@ -347,6 +347,7 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error('An error occurred during the fetch process:', error)
+  console.error('An error occurred during the fetch process. Full error details:')
+  console.error(error);
   process.exit(1)
 })

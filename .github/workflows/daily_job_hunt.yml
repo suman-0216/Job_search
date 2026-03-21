@@ -28,7 +28,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Fetch jobs data
+      - name: List Environment Variables
+        run: |
+          echo "Listing environment variables..."
+          printenv
+          echo "APIFY_TOKEN is set: ${{ !!secrets.APIFY_TOKEN }}"
+          echo "GOOGLE_API_KEY is set: ${{ !!secrets.GOOGLE_API_KEY }}"
+
+      - name: Fetch jobs data (with verbose logging)
         env:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
@@ -37,13 +44,13 @@ jobs:
           APIFY_POLL_INTERVAL_MS: "4000"
           GOOGLE_ENRICH_LIMIT: "120"
           SKILL_DELAY_MS: "120"
-        run: npm run fetch
+        run: npm run fetch || true
 
-      - name: Clean up old data (older than 5 days)
+      - name: Clean up old data (with verbose logging)
         env:
           LATEST_JOBS_TIME: ${{ vars.LATEST_JOBS_TIME || '5' }}
           APPLIED_JOBS_TIME: ${{ vars.APPLIED_JOBS_TIME || '30' }}
-        run: npm run clean
+        run: npm run clean || true
 
       - name: Commit and push updated data
         run: |
