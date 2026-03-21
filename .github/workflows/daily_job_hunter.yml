@@ -1,12 +1,10 @@
-name: Daily Job Hunt
+name: Daily Job Hunt (Backup Manual)
 
 on:
-  schedule:
-    - cron: '0 14 * * *' # 6am PST = 14:00 UTC
-  workflow_dispatch: # Allow manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
-  scrape-and-deploy:
+  scrape-and-commit:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -22,15 +20,27 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run Fetch and Build Scripts
+      - name: Fetch jobs data
         env:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
-        run: npm run run-all
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          APIFY_DATASET_LIMIT: "500"
+          APIFY_TIMEOUT_SECS: "480"
+          APIFY_POLL_INTERVAL_MS: "4000"
+          GOOGLE_ENRICH_LIMIT: "120"
+          SKILL_DELAY_MS: "120"
+        run: npm run fetch
+
+      - name: Clean old data
+        env:
+          LATEST_JOBS_TIME: ${{ vars.LATEST_JOBS_TIME || '5' }}
+          APPLIED_JOBS_TIME: ${{ vars.APPLIED_JOBS_TIME || '30' }}
+        run: npm run clean
 
       - name: Commit and push updated data
         run: |
-          git config --global user.email "suman970629@gmail.com"
-          git config --global user.name "suman-0216"
-          git add data/ public/
-          git diff --staged --quiet || git commit -m "🤖 Daily update $(date +%Y-%m-%d)"
+          git config --global user.email "actions@github.com"
+          git config --global user.name "Job Hunter Bot"
+          git add data/
+          git diff --staged --quiet || git commit -m "Manual backup data update $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           git push
