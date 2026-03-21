@@ -1,4 +1,4 @@
-﻿import fetch from 'node-fetch'
+import fetch from 'node-fetch'
 import fs from 'fs'
 import path from 'path'
 import 'dotenv/config'
@@ -214,7 +214,7 @@ async function runApifyActor(actorId, input, timeoutSecs = APIFY_TIMEOUT_SECS) {
 
 async function scrapeLinkedInJobs() {
   console.log('Scraping LinkedIn Jobs (US + CA + Bay Area aggressive)...')
-  const jobs = await runApifyActor('curious_coder/linkedin-jobs-scraper', {
+  const jobs = await runApifyActor('scrapepilot~linkedin-jobs-scraper', {
     startUrls: LINKEDIN_SEARCH_URLS.map((url) => ({ url })),
     maxItems: APIFY_DATASET_LIMIT,
   })
@@ -225,8 +225,8 @@ async function scrapeLinkedInJobs() {
 
 async function scrapeGoogleJobs() {
   console.log('Scraping Google-indexed jobs (Lever/Greenhouse/Wellfound/YC/LinkedIn pages)...')
-  const results = await runApifyActor('apify/google-search-scraper', {
-    queries: GOOGLE_JOB_QUERIES,
+  const results = await runApifyActor('apify~google-search-scraper', {
+    queries: GOOGLE_JOB_QUERIES.join('\n'),
     resultsPerPage: GOOGLE_RESULTS_PER_PAGE,
     maxPagesPerQuery: 1,
   })
@@ -256,19 +256,19 @@ async function enrichJobsWithSkills(jobs) {
 
 async function scrapeFundedStartups() {
   console.log('Scraping recently funded startups...')
-  return await runApifyActor('apify/google-search-scraper', {
+  return await runApifyActor('apify~google-search-scraper', {
     queries: [
       'AI ML startup seed series A funding raised San Francisco last 7 days site:techcrunch.com',
       'AI startup funding announcement site:venturebeat.com OR site:crunchbase.com',
       'AI startup funding round Bay Area site:forbes.com OR site:axios.com',
-    ],
+    ].join('\n'),
     resultsPerPage: 20,
   })
 }
 
 async function scrapeStealthStartups() {
   console.log('Finding stealth startups...')
-  return await runApifyActor('apify/google-search-scraper', {
+  return await runApifyActor('apify~google-search-scraper', {
     queries: [
       'linkedin stealth startup AI engineer San Francisco',
       'ycombinator.com W26 OR S26 batch AI',
@@ -276,25 +276,55 @@ async function scrapeStealthStartups() {
       'site:jobs.lever.co AI engineer startup',
       'site:boards.greenhouse.io AI machine learning engineer startup careers',
       'site:ycombinator.com/jobs AI engineer',
-    ],
+    ].join('\n'),
     resultsPerPage: 20,
   })
 }
 
 async function main() {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true })
+  const task = process.argv.find(arg => arg.startsWith('--task='))?.split('=')[1];
 
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+
+  if (task) {
+    let result;
+    console.log(`Running isolated task: ${task}`);
+    switch (task) {
+      case 'linkedin':
+        result = await scrapeLinkedInJobs();
+        break;
+      case 'google':
+        result = await scrapeGoogleJobs();
+        break;
+      case 'funded':
+        result = await scrapeFundedStartups();
+        break;
+      case 'stealth':
+        result = await scrapeStealthStartups();
+        break;
+      default:
+        console.error(`Unknown task: ${task}`);
+        process.exit(1);
+    }
+    const outPath = path.join(DATA_DIR, `${task}_results.json`);
+    fs.writeFileSync(outPath, JSON.stringify(result || [], null, 2));
+    console.log(`Task ${task} completed. Results saved to ${outPath}`);
+    return;
+  }
+
+  // --- Full run if no specific task ---
+  console.log('Starting full data fetch process...');
   const [linkedinJobs, googleJobs, funded, stealth] = await Promise.allSettled([
     scrapeLinkedInJobs(),
     scrapeGoogleJobs(),
     scrapeFundedStartups(),
     scrapeStealthStartups(),
-  ])
+  ]);
 
-  const rawLinkedin = linkedinJobs.status === 'fulfilled' ? linkedinJobs.value : []
-  const rawGoogleJobs = googleJobs.status === 'fulfilled' ? googleJobs.value : []
-  const mergedJobs = dedupeJobs([...rawLinkedin, ...rawGoogleJobs])
-  const jobs = await enrichJobsWithSkills(mergedJobs)
+  const rawLinkedin = linkedinJobs.status === 'fulfilled' ? linkedinJobs.value : [];
+  const rawGoogleJobs = googleJobs.status === 'fulfilled' ? googleJobs.value : [];
+  const mergedJobs = dedupeJobs([...rawLinkedin, ...rawGoogleJobs]);
+  const jobs = await enrichJobsWithSkills(mergedJobs);
 
   const snapshot = {
     scrapedAt: NOW.toISOString(),
@@ -306,18 +336,17 @@ async function main() {
       merged_unique_jobs: mergedJobs.length,
       enriched_jobs: jobs.length,
     },
-    funded_startups: funded.status === 'fulfilled' ? funded.value : { error: funded.reason.message },
-    stealth_startups: stealth.status === 'fulfilled' ? stealth.value : { error: stealth.reason.message },
+    funded_startups: funded.status === 'fulfilled' ? funded.value : { error: funded.reason?.message },
+    stealth_startups: stealth.status === 'fulfilled' ? stealth.value : { error: stealth.reason?.message },
   }
 
-  const outPath = path.join(DATA_DIR, `${TIMESTAMP}.json`)
-  fs.writeFileSync(outPath, JSON.stringify(snapshot, null, 2))
-  console.log(`Data saved to ${outPath}`)
-  console.log(`LinkedIn: ${rawLinkedin.length}, Google indexed jobs: ${rawGoogleJobs.length}, Final unique: ${mergedJobs.length}`)
+  const outPath = path.join(DATA_DIR, `${TIMESTAMP}.json`);
+  fs.writeFileSync(outPath, JSON.stringify(snapshot, null, 2));
+  console.log(`Full run data saved to ${outPath}`);
+  console.log(`LinkedIn: ${rawLinkedin.length}, Google indexed jobs: ${rawGoogleJobs.length}, Final unique: ${mergedJobs.length}`);
 }
 
 main().catch((error) => {
   console.error('An error occurred during the fetch process:', error)
   process.exit(1)
 })
-
