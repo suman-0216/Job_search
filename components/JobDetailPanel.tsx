@@ -55,7 +55,7 @@ export default function JobDetailPanel({ job: rawJob, onClose }: JobDetailPanelP
       document.body.style.overflow = '';
       window.removeEventListener('keydown', onEsc);
     };
-  }, [rawJob]);
+  }, [rawJob, onClose]);
 
   if (!rawJob || !scoredJob || !outreach) return null;
 
@@ -138,7 +138,7 @@ export default function JobDetailPanel({ job: rawJob, onClose }: JobDetailPanelP
           {activeTab === 'description' && (
             <section className="detail-section">
               <p className="metric-label">Why Apply?</p>
-              <p className="mt-2 text-base font-medium text-blue-400/90 italic leading-relaxed">"{getWhyApplySummary(scoredJob)}"</p>
+              <p className="mt-2 text-base font-medium text-blue-400/90 italic leading-relaxed">&quot;{getWhyApplySummary(scoredJob)}&quot;</p>
               <hr className="my-6 border-[var(--apple-border)]" />
               <p className="metric-label">Job Description</p>
               <p className="mt-4 whitespace-pre-wrap text-[15px] leading-7 text-[var(--apple-text)]">{scoredJob.description}</p>
