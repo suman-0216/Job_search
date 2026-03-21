@@ -1,22 +1,29 @@
-name: Daily Job Hunt
+name: Manual Task Runner
 
 on:
-  schedule:
-    # Runs at 14:00 UTC, which is 6:00 AM PST (or 7:00 AM PDT)
-    - cron: '0 14 * * *'
-  workflow_dispatch: # Allows manual triggering from the GitHub UI
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'Which task to run?'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - linkedin
+          - funded
+          - stealth
 
 jobs:
-  scrape-and-commit:
+  manual-scrape:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Needed to commit back to the repo
-      
+      contents: write
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          # We need full history to properly detect changes
           fetch-depth: 0
 
       - name: Setup Node.js
@@ -28,26 +35,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Fetch jobs data
+      - name: Run selected task
         env:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           GEMINI_MODEL: 'gemini-1.5-flash-preview'
-        # Continue even if this step fails, so we can still try to clean old data
-        continue-on-error: true
-        run: node scripts/fetch_jobs.js
-
-      - name: Clean up old data
-        run: node scripts/clean_old_data.js
+        run: node scripts/fetch_jobs.js --task=${{ inputs.task }}
 
       - name: Commit and push updated data
         run: |
           git config --global user.name 'Job Hunter Bot'
           git config --global user.email 'actions@github.com'
           git add data/
-          # Check if there are changes to commit
           if ! git diff --staged --quiet; then
-            git commit -m "🤖 Daily update $(date -u +'%Y-%m-%d')"
+            git commit -m "🤖 Manual run: ${{ inputs.task }} data update"
             git push
           else
             echo "No new data to commit."

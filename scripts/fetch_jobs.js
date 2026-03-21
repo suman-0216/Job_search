@@ -3,6 +3,9 @@ import fs from 'fs'
 import path from 'path'
 import 'dotenv/config'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { XMLParser } from 'fast-xml-parser'
+
+// --- HELPERS and CONFIG ---
 
 const required = (name, value) => {
   if (!value) throw new Error(`${name} is not defined.`)
@@ -17,13 +20,12 @@ const envInt = (name, fallback) => {
 const GOOGLE_API_KEY = required('GOOGLE_API_KEY', process.env.GOOGLE_API_KEY)
 const APIFY_TOKEN = required('APIFY_TOKEN', process.env.APIFY_TOKEN)
 
-const AI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash'
+const AI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash-preview'
 const APIFY_TIMEOUT_SECS = envInt('APIFY_TIMEOUT_SECS', 480)
-const APIFY_DATASET_LIMIT = envInt('APIFY_DATASET_LIMIT', 500)
-const APIFY_POLL_INTERVAL_MS = envInt('APIFY_POLL_INTERVAL_MS', 4000)
-const GOOGLE_ENRICH_LIMIT = envInt('GOOGLE_ENRICH_LIMIT', 140)
+const APIFY_DATASET_LIMIT = envInt('APIFY_DATASET_LIMIT', 150)
+const APIFY_POLL_INTERVAL_MS = envInt('APIFY_POLL_INTERVAL_MS', 5000)
+const GOOGLE_ENRICH_LIMIT = envInt('GOOGLE_ENRICH_LIMIT', 120)
 const SKILL_DELAY_MS = envInt('SKILL_DELAY_MS', 120)
-const GOOGLE_RESULTS_PER_PAGE = envInt('GOOGLE_RESULTS_PER_PAGE', 30)
 
 const DATA_DIR = './data'
 const NOW = new Date()
@@ -31,133 +33,75 @@ const TIMESTAMP = `${NOW.getFullYear()}-${String(NOW.getMonth() + 1).padStart(2,
 
 const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY)
 const model = genAI.getGenerativeModel({ model: AI_MODEL })
-
-const TARGET_ROLES = [
-  'founding engineer',
-  'founding ai engineer',
-  'ai engineer',
-  'software engineer ai',
-  'software engineer ml',
-  'machine learning engineer',
-  'ml engineer',
-  'applied ai engineer',
-  'llm engineer',
-  'generative ai engineer',
-]
-
-const LOCATION_TARGETS = ['united states', 'california', 'san francisco bay area', 'san francisco']
-
-const LINKEDIN_SEARCH_URLS = TARGET_ROLES.flatMap(role =>
-  LOCATION_TARGETS.map(location => {
-    const keywords = encodeURIComponent(role);
-    const locationKeywords = encodeURIComponent(location);
-    if (location.includes('san francisco')) {
-        // Use Geo ID for SF Bay Area for precision
-        return `https://www.linkedin.com/jobs/search/?keywords=${keywords}&f_E=1,2&f_TPR=r86400&geoId=102752184&position=1&pageNum=0`;
-    }
-    return `https://www.linkedin.com/jobs/search/?keywords=${keywords}&location=${locationKeywords}&f_E=1,2&f_TPR=r86400&position=1&pageNum=0`;
-  })
-);
-
-const GOOGLE_JOB_QUERIES = [
-  // USA broad
-  '"founding ai engineer" OR "ai engineer" OR "software engineer ai" OR "machine learning engineer" "0-3 years" "United States" (site:jobs.lever.co OR site:boards.greenhouse.io OR site:wellfound.com OR site:linkedin.com/jobs/view)',
-  '"entry level ai engineer" OR "junior machine learning engineer" "United States" jobs',
-
-  // California
-  '"founding engineer" OR "ai engineer" "California" "0-3 years" (site:jobs.lever.co OR site:boards.greenhouse.io OR site:wellfound.com)',
-  '"software engineer ai" "California" "entry level" jobs',
-
-  // Bay Area
-  '"ai engineer" OR "ml engineer" "San Francisco Bay Area" "0-3 years" jobs',
-  '"founding engineer" "San Francisco" startup jobs',
-
-  // YC / startup ecosystems
-  'site:ycombinator.com/jobs ("ai engineer" OR "machine learning engineer" OR "founding engineer")',
-  'site:wellfound.com "founding engineer" "ai"',
-  'site:jobs.lever.co "machine learning engineer" "San Francisco"',
-  'site:boards.greenhouse.io "software engineer" "ai" "bay area"',
-  '("founding engineer" OR "ai engineer" OR "software engineer ai" OR "machine learning engineer") site:jobs.a16z.com',
-]
+const xmlParser = new XMLParser()
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-
 const normalizeText = (value) => String(value || '').toLowerCase()
 
-const hasTargetRole = (text) => TARGET_ROLES.some((role) => text.includes(role))
+// --- TARGETING CONSTANTS ---
 
+const TARGET_ROLES = [
+  'founding engineer', 'founding ai engineer', 'ai engineer', 'software engineer ai',
+  'software engineer ml', 'machine learning engineer', 'ml engineer', 'applied ai engineer',
+  'llm engineer', 'generative ai engineer', 'stealth startup',
+]
+
+const LOCATION_TARGETS = ['united states', 'california', 'san francisco bay area', 'san francisco', 'remote']
+
+const LINKEDIN_SEARCH_URLS = [
+  // Founding AI Engineer — Entry Level (f_E=2) — SF Bay Area — Last 24h
+  "https://www.linkedin.com/jobs/search/?keywords=Founding+Engineer+AI+ML&f_E=2&f_TPR=r86400&geoId=102748604&position=1&pageNum=0",
+  // ML Engineer — Entry Level — US — Last 24h 
+  "https://www.linkedin.com/jobs/search/?keywords=Machine+Learning+Engineer&f_E=2&f_TPR=r86400&f_L=us%3A0&position=1&pageNum=0",
+  // AI Engineer startup — Entry Level — SF — Last 24h
+  "https://www.linkedin.com/jobs/search/?keywords=AI+Engineer+startup&f_E=2&f_TPR=r86400&geoId=102748604&position=1&pageNum=0",
+  // Founding Engineer — Entry Level — SF — Last 24h
+  "https://www.linkedin.com/jobs/search/?keywords=Founding+Engineer&f_E=2&f_TPR=r86400&geoId=102748604&position=1&pageNum=0",
+  // LLM Engineer — Entry Level — US — Last 24h
+  "https://www.linkedin.com/jobs/search/?keywords=LLM+Engineer&f_E=2&f_TPR=r86400&f_L=us%3A0&position=1&pageNum=0",
+  // Generative AI Engineer — Entry Level — US — Last 24h
+  "https://www.linkedin.com/jobs/search/?keywords=Generative+AI+Engineer&f_E=2&f_TPR=r86400&f_L=us%3A0&position=1&pageNum=0",
+]
+
+// --- SHARED DATA PROCESSING LOGIC ---
+
+const hasTargetRole = (text) => TARGET_ROLES.some((role) => text.includes(role))
 const hasTargetLocation = (text) => LOCATION_TARGETS.some((loc) => text.includes(loc))
 
 const isEarlyCareer = (text) => {
   const lower = normalizeText(text)
-
   const includeSignals = [
-    /\b0\s*[-–to]{1,3}\s*3\s*years?\b/, /\b0\s*[-–]\s*2\s*years?\b/, /\b1\s*[-–]\s*3\s*years?\b/,
-    /\bentry\s*level\b/, /\bnew\s*grad\b/, /\bjunior\b/, /\bassociate\b/, /\bearly\s*career\b/,
-    /\b1\+?\s*years?\b/, /\b2\+?\s*years?\b/, /\b3\+?\s*years?\b/
+    /\b0\s*[-–to]{1,3}\s*3\s*years?\b/, /\bentry\s*level\b/, /\bnew\s*grad\b/, /\bjunior\b/,
+    /\bassociate\b/, /\bearly\s*career\b/, /\b1\+?\s*years?\b/, /\b2\+?\s*years?\b/, /\b3\+?\s*years?\b/
   ]
-
   const excludeSignals = [
-    /\b4\+\s*years?\b/, /\b5\+\s*years?\b/, /\b6\+\s*years?\b/, /\b7\+\s*years?\b/, /\b8\+\s*years?\b/,
-    /\b10\+\s*years?\b/, /\bsenior\b/, /\bstaff\b/, /\bprincipal\b/, /\blead\b/
+    /\b4\+\s*years?\b/, /\b5\+\s*years?\b/, /\b10\+\s*years?\b/, /\bsenior\b/, /\bstaff\b/,
+    /\bprincipal\b/, /\blead\b/, /\bmanager\b/
   ]
-
   if (excludeSignals.some((regex) => regex.test(lower))) return false
-  if (includeSignals.some((regex) => regex.test(lower))) return true
-
-  return true
+  return includeSignals.some((regex) => regex.test(lower)) || true
 }
 
 const normalizeLinkedInJob = (job) => ({
   ...job,
   source: 'linkedin',
-  title: job.title || job.role || '',
-  company: job.companyName || job.company || '',
+  title: job.title || '',
+  company: job.companyName || '',
   location: job.location || '',
   description: job.description || '',
   link: job.link || '',
-  timestamp: job.postedAt || job.timestamp || NOW.toISOString(),
+  timestamp: job.postedAt || NOW.toISOString(),
 })
 
-const normalizeGoogleResultToJob = (item) => {
-  const title = item.title || item.searchQuery?.term || 'AI/ML role'
-  const description = item.description || item.snippet || ''
-  const link = item.url || item.link || ''
-  const domain = (() => {
-    try {
-      return link ? new URL(link).hostname.replace('www.', '') : 'unknown source'
-    } catch {
-      return 'unknown source'
-    }
-  })()
-
-  return {
-    source: 'google-search',
-    title,
-    role: title,
-    company: domain,
-    companyName: domain,
-    location: item.searchQuery?.term || 'United States',
-    description,
-    link,
-    timestamp: NOW.toISOString(),
-    postedAt: NOW.toISOString(),
-    applicants: 'N/A',
-    workRemoteAllowed: /remote/i.test(`${title} ${description}`),
-    employmentType: '',
-    salary: '',
-  }
-}
-
 const passesTargetFilters = (job) => {
-  const text = normalizeText(`${job.title} ${job.role} ${job.company} ${job.companyName} ${job.location} ${job.description}`)
+  const text = normalizeText(`${job.title} ${job.company} ${job.location} ${job.description}`)
   return hasTargetRole(text) && hasTargetLocation(text) && isEarlyCareer(text)
 }
 
 const dedupeJobs = (jobs) => {
   const seen = new Set()
   return jobs.filter((job) => {
-    const key = `${normalizeText(job.link)}|${normalizeText(job.title || job.role)}|${normalizeText(job.companyName || job.company)}`
+    const key = `${normalizeText(job.link)}|${normalizeText(job.title)}|${normalizeText(job.company)}`
     if (seen.has(key)) return false
     seen.add(key)
     return true
@@ -167,16 +111,34 @@ const dedupeJobs = (jobs) => {
 async function extractSkillsWithAI(jobDescription) {
   if (!jobDescription || jobDescription.length < 50) return []
   try {
-    const prompt = `Extract the top 5-7 most important technical skills or technologies from this job description. Return them as a simple comma-separated list. Example: Python, PyTorch, AWS, Docker, Kubernetes. Job Description: "${jobDescription}"`
+    const prompt = `Extract the top 5-7 most important technical skills from this job description. Return a simple comma-separated list. Example: Python, PyTorch, AWS, Docker, Kubernetes. Job Description: "${jobDescription}"`
     const result = await model.generateContent(prompt)
-    const response = await result.response
-    const text = response.text()
+    const text = result.response.text()
     return text.split(',').map((skill) => skill.trim()).filter(Boolean)
   } catch (error) {
     console.error('Error with Google AI skill extraction:', error)
     return []
   }
 }
+
+async function enrichJobsWithSkills(jobs) {
+  const enrichCount = Math.min(jobs.length, GOOGLE_ENRICH_LIMIT)
+  console.log(`Enriching ${enrichCount}/${jobs.length} jobs with AI skills...`)
+  const enriched = []
+  for (let i = 0; i < jobs.length; i++) {
+    const job = jobs[i]
+    if (i < enrichCount) {
+      await wait(SKILL_DELAY_MS)
+      const skills = await extractSkillsWithAI(job.description)
+      enriched.push({ ...job, skills })
+    } else {
+      enriched.push({ ...job, skills: [] })
+    }
+  }
+  return enriched
+}
+
+// --- API & SCRAPING FUNCTIONS ---
 
 async function runApifyActor(actorId, input, timeoutSecs = APIFY_TIMEOUT_SECS) {
   console.log(`Starting Apify actor: ${actorId}`)
@@ -185,10 +147,9 @@ async function runApifyActor(actorId, input, timeoutSecs = APIFY_TIMEOUT_SECS) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   })
-
   const runData = await runResponse.json()
   const runId = runData?.data?.id
-  if (!runId) throw new Error(`Unable to start actor ${actorId}: ${JSON.stringify(runData)}`)
+  if (!runId) throw new Error(`Failed to start actor ${actorId}: ${JSON.stringify(runData)}`)
 
   const startTime = Date.now()
   while (Date.now() - startTime < timeoutSecs * 1000) {
@@ -196,135 +157,161 @@ async function runApifyActor(actorId, input, timeoutSecs = APIFY_TIMEOUT_SECS) {
     const statusResponse = await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${APIFY_TOKEN}`)
     const statusData = await statusResponse.json()
     const status = statusData?.data?.status
-    const defaultDatasetId = statusData?.data?.defaultDatasetId
-
     console.log(`Run ${runId} status: ${status}`)
     if (status === 'SUCCEEDED') {
-      const itemsResponse = await fetch(`https://api.apify.com/v2/datasets/${defaultDatasetId}/items?token=${APIFY_TOKEN}&limit=${APIFY_DATASET_LIMIT}`)
+      const itemsResponse = await fetch(`https://api.apify.com/v2/datasets/${statusData.data.defaultDatasetId}/items?token=${APIFY_TOKEN}&limit=${APIFY_DATASET_LIMIT}`)
       return await itemsResponse.json()
     }
-
     if (['FAILED', 'ABORTED', 'TIMED-OUT'].includes(status)) {
       throw new Error(`Actor run ${runId} failed with status: ${status}`)
     }
   }
-
   throw new Error(`Actor run ${runId} timed out after ${timeoutSecs} seconds.`)
 }
 
 async function scrapeLinkedInJobs() {
-  console.log('Scraping LinkedIn Jobs (US + CA + Bay Area aggressive)...')
-  const jobs = await runApifyActor('scrapepilot~linkedin-jobs-scraper', {
-    startUrls: LINKEDIN_SEARCH_URLS.map((url) => ({ url })),
-    maxItems: APIFY_DATASET_LIMIT,
+  console.log('Scraping LinkedIn for targeted entry-level AI/ML roles...')
+  const jobs = await runApifyActor('curious_coder~linkedin-jobs-scraper', {
+    urls: LINKEDIN_SEARCH_URLS,
+    count: APIFY_DATASET_LIMIT,
+    scrapeCompany: true,
   })
-
   if (!Array.isArray(jobs)) return []
   return jobs.map(normalizeLinkedInJob).filter(passesTargetFilters)
 }
 
-async function scrapeGoogleJobs() {
-  console.log('Scraping Google-indexed jobs (Lever/Greenhouse/Wellfound/YC/LinkedIn pages)...')
-  const results = await runApifyActor('apify~google-search-scraper', {
-    queries: GOOGLE_JOB_QUERIES.join('\n'),
-    resultsPerPage: GOOGLE_RESULTS_PER_PAGE,
-    maxPagesPerQuery: 1,
-  })
-
-  if (!Array.isArray(results)) return []
-  return results.map(normalizeGoogleResultToJob).filter(passesTargetFilters)
-}
-
-async function enrichJobsWithSkills(jobs) {
-  const enrichCount = Math.min(jobs.length, GOOGLE_ENRICH_LIMIT)
-  console.log(`Enriching ${enrichCount}/${jobs.length} jobs with AI skills...`)
-
-  const enriched = []
-  for (let index = 0; index < jobs.length; index += 1) {
-    const job = jobs[index]
-    if (index < enrichCount) {
-      await wait(SKILL_DELAY_MS)
-      const skills = await extractSkillsWithAI(job.description)
-      enriched.push({ ...job, skills })
-      continue
-    }
-    enriched.push({ ...job, skills: [] })
-  }
-
-  return enriched
-}
-
 async function scrapeFundedStartups() {
-  console.log('Scraping recently funded startups...')
-  return await runApifyActor('apify~google-search-scraper', {
-    queries: [
-      'AI ML startup seed series A funding raised San Francisco last 7 days site:techcrunch.com',
-      'AI startup funding announcement site:venturebeat.com OR site:crunchbase.com',
-      'AI startup funding round Bay Area site:forbes.com OR site:axios.com',
-    ].join('\n'),
-    resultsPerPage: 20,
-  })
+  console.log('Scraping RSS feeds for recently funded startups...')
+  const feeds = [
+    'https://techcrunch.com/category/artificial-intelligence/feed/',
+    'https://techcrunch.com/category/startups/feed/',
+    'https://venturebeat.com/category/ai/feed/',
+  ]
+  const fundingKeywords = /\b(raises|raised|seed|series a|million|funding|investment|launches with)\b/i
+  const sevenDaysAgo = new Date(NOW.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const results = []
+
+  const responses = await Promise.allSettled(feeds.map(url => fetch(url).then(res => res.text())))
+  for (const res of responses) {
+    if (res.status !== 'fulfilled' || !res.value) continue
+    const feed = xmlParser.parse(res.value)
+    const items = feed.rss?.channel?.item || []
+    for (const item of items) {
+      const pubDate = new Date(item.pubDate)
+      if (pubDate < sevenDaysAgo) continue
+      const text = `${item.title} ${item.description || ''} ${item['content:encoded'] || ''}`
+      if (!fundingKeywords.test(text)) continue
+
+      const companyName = item.title.split(' raises')[0].split(' raises')[0].trim()
+      const fundingMatch = text.match(/\$?(\d{1,3}(?:,\d{3})*(\.\d+)?)\s*million|\$?(\d+)\s*M/i)
+      const ceoMatch = text.match(/(?:CEO|founder)\s+([A-Z][a-z]+)\s+([A-Z][a-z]+)/)
+
+      results.push({
+        company_name: companyName,
+        funding_amount: fundingMatch ? fundingMatch[0] : 'N/A',
+        round_type: text.match(/series\s+[a-d]|seed/i)?.[0] || 'N/A',
+        article_url: item.link,
+        published_date: pubDate.toISOString(),
+        ceo_name: ceoMatch ? `${ceoMatch[1]} ${ceoMatch[2]}` : 'N/A',
+        domain: `${normalizeText(companyName.split(' ')[0])}.com`,
+        email_guess: ceoMatch ? `${normalizeText(ceoMatch[1])}@${normalizeText(companyName.split(' ')[0])}.com` : 'N/A',
+        outreach_hook: `outreach_hook: Saw your recent funding of ${fundingMatch ? fundingMatch[0] : '...'}`,
+      })
+    }
+  }
+  return results
 }
 
 async function scrapeStealthStartups() {
-  console.log('Finding stealth startups...')
-  return await runApifyActor('apify~google-search-scraper', {
-    queries: [
-      'linkedin stealth startup AI engineer San Francisco',
-      'ycombinator.com W26 OR S26 batch AI',
-      'wellfound.com jobs engineer AI ML founding',
-      'site:jobs.lever.co AI engineer startup',
-      'site:boards.greenhouse.io AI machine learning engineer startup careers',
-      'site:ycombinator.com/jobs AI engineer',
-    ].join('\n'),
-    resultsPerPage: 20,
-  })
-}
-
-async function main() {
-  const task = process.argv.find(arg => arg.startsWith('--task='))?.split('=')[1];
-
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-
-  if (task) {
-    let result;
-    console.log(`Running isolated task: ${task}`);
-    switch (task) {
-      case 'linkedin':
-        result = await scrapeLinkedInJobs();
-        break;
-      case 'google':
-        result = await scrapeGoogleJobs();
-        break;
-      case 'funded':
-        result = await scrapeFundedStartups();
-        break;
-      case 'stealth':
-        result = await scrapeStealthStartups();
-        break;
-      default:
-        console.error(`Unknown task: ${task}`);
-        process.exit(1);
-    }
-    const outPath = path.join(DATA_DIR, `${task}_results.json`);
-    fs.writeFileSync(outPath, JSON.stringify(result || [], null, 2));
-    console.log(`Task ${task} completed. Results saved to ${outPath}`);
-    return;
+  console.log('Finding stealth startups from YC, Wellfound, HN, and LinkedIn...')
+  const allStealthSources = {
+    yc: [],
+    wellfound: [],
+    hn: [],
+    linkedin: [],
   }
 
-  // --- Full run if no specific task ---
-  console.log('Starting full data fetch process...');
-  const [linkedinJobs, googleJobs, funded, stealth] = await Promise.allSettled([
+  // YC Companies API
+  const ycBatches = ['W25', 'S25']
+  for (const batch of ycBatches) {
+    const url = `https://api.ycombinator.com/v0.1/companies?batch=${batch}&industry=Artificial%20Intelligence`
+    const res = await fetch(url)
+    if (res.ok) allStealthSources.yc.push(...(await res.json()).companies)
+  }
+
+  // Wellfound RSS
+  const wfRes = await fetch('https://wellfound.com/jobs.rss?role=engineer&remote=true').then(r => r.text())
+  const wfFeed = xmlParser.parse(wfRes)
+  allStealthSources.wellfound = (wfFeed.rss?.channel?.item || []).filter(item =>
+    /ai|ml|founding/i.test(`${item.title} ${item.description}`)
+  )
+
+  // HN "Who is Hiring"
+  const hnSearch = await fetch('https://hn.algolia.com/api/v1/search?query=who+is+hiring&tags=ask_hn').then(r => r.json())
+  if (hnSearch.hits.length > 0) {
+    const threadId = hnSearch.hits[0].objectID
+    const thread = await fetch(`https://hacker-news.firebaseio.com/v0/item/${threadId}.json`).then(r => r.json())
+    const commentIds = thread.kids?.slice(0, 100) || []
+    const commentResponses = await Promise.allSettled(
+      commentIds.map(id => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(r => r.json()))
+    )
+    allStealthSources.hn = commentResponses
+      .filter(r => r.status === 'fulfilled' && /ai|ml|san francisco|sf/i.test(r.value?.text || ''))
+      .map(r => r.value)
+  }
+
+  // LinkedIn stealth search
+  allStealthSources.linkedin = await runApifyActor('curious_coder~linkedin-jobs-scraper', {
+    urls: ["https://www.linkedin.com/jobs/search/?keywords=stealth+startup+AI+engineer&f_TPR=r604800&geoId=102748604"],
+    count: 50,
+    scrapeCompany: true,
+  })
+
+  return allStealthSources
+}
+
+// --- MAIN EXECUTION ---
+
+async function main() {
+  const task = process.argv.find(arg => arg.startsWith('--task='))?.split('=')[1]
+
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true })
+
+  if (task) {
+    let result
+    console.log(`Running isolated task: ${task}`)
+    switch (task) {
+      case 'linkedin':
+        result = await scrapeLinkedInJobs()
+        break
+      case 'funded':
+        result = await scrapeFundedStartups()
+        break
+      case 'stealth':
+        result = await scrapeStealthStartups()
+        break
+      default:
+        console.error(`Unknown task: ${task}`)
+        process.exit(1)
+    }
+    const outPath = path.join(DATA_DIR, `${task}_results.json`)
+    fs.writeFileSync(outPath, JSON.stringify(result || [], null, 2))
+    console.log(`Task ${task} completed. Results saved to ${outPath}`)
+    return
+  }
+
+  // Full run
+  console.log('Starting full data fetch process...')
+  const [linkedinResult, fundedResult, stealthResult] = await Promise.allSettled([
     scrapeLinkedInJobs(),
-    scrapeGoogleJobs(),
     scrapeFundedStartups(),
     scrapeStealthStartups(),
-  ]);
+  ])
 
-  const rawLinkedin = linkedinJobs.status === 'fulfilled' ? linkedinJobs.value : [];
-  const rawGoogleJobs = googleJobs.status === 'fulfilled' ? googleJobs.value : [];
-  const mergedJobs = dedupeJobs([...rawLinkedin, ...rawGoogleJobs]);
-  const jobs = await enrichJobsWithSkills(mergedJobs);
+  const rawLinkedin = linkedinResult.status === 'fulfilled' ? linkedinResult.value : []
+  const jobs = await enrichJobsWithSkills(dedupeJobs(rawLinkedin))
+  const funded_startups = fundedResult.status === 'fulfilled' ? fundedResult.value : { error: fundedResult.reason?.message }
+  const stealth_startups = stealthResult.status === 'fulfilled' ? stealthResult.value : { error: stealthResult.reason?.message }
 
   const snapshot = {
     scrapedAt: NOW.toISOString(),
@@ -332,22 +319,19 @@ async function main() {
     jobs,
     source_stats: {
       linkedin_jobs: rawLinkedin.length,
-      google_indexed_jobs: rawGoogleJobs.length,
-      merged_unique_jobs: mergedJobs.length,
       enriched_jobs: jobs.length,
     },
-    funded_startups: funded.status === 'fulfilled' ? funded.value : { error: funded.reason?.message },
-    stealth_startups: stealth.status === 'fulfilled' ? stealth.value : { error: stealth.reason?.message },
+    funded_startups,
+    stealth_startups,
   }
 
-  const outPath = path.join(DATA_DIR, `${TIMESTAMP}.json`);
-  fs.writeFileSync(outPath, JSON.stringify(snapshot, null, 2));
-  console.log(`Full run data saved to ${outPath}`);
-  console.log(`LinkedIn: ${rawLinkedin.length}, Google indexed jobs: ${rawGoogleJobs.length}, Final unique: ${mergedJobs.length}`);
+  const outPath = path.join(DATA_DIR, `${TIMESTAMP}.json`)
+  fs.writeFileSync(outPath, JSON.stringify(snapshot, null, 2))
+  console.log(`Full run data saved to ${outPath}`)
+  console.log(`LinkedIn: ${rawLinkedin.length}, Final unique jobs: ${jobs.length}`)
 }
 
 main().catch((error) => {
-  console.error('An error occurred during the fetch process. Full error details:')
-  console.error(error);
+  console.error('An error occurred during the fetch process:', error)
   process.exit(1)
 })
