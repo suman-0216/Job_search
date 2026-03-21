@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { XMarkIcon, CheckIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid'
+import { XMarkIcon } from '@heroicons/react/24/solid'
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline'
 import { MY_PROFILE } from '../lib/candidate'
 import { scoreJob, AugmentedJob } from '../lib/scorer'
@@ -92,38 +92,6 @@ export default function JobDetailPanel({ job: rawJob, onClose }: JobDetailPanelP
             <button type="button" onClick={onClose} className="ghost-icon p-2" aria-label="Close">
               <XMarkIcon className="h-6 w-6" />
             </button>
-          </div>
-        </div>
-
-        {/* --- MATCH SCORE CARD --- */}
-        <div className="mx-8 mb-6 p-6 rounded-2xl bg-[var(--apple-button-hover)] border border-[var(--apple-border)]">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold">Match Score: <span className="text-blue-500">{scoredJob.score}/10</span></h3>
-            <span className="text-sm font-medium text-[var(--apple-text-muted)] uppercase tracking-widest">{scoredJob.variant} Variant</span>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <p className="metric-label mb-2">✅ Matched Skills</p>
-              <div className="flex flex-wrap gap-1.5">
-                {scoredJob.matched_skills.slice(0, 6).map(skill => (
-                  <span key={skill} className="skill-chip text-[11px]"><CheckIcon className="h-3 w-3 mr-1" /> {skill}</span>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p className="metric-label mb-2">⚠️ Missing Skills</p>
-              <div className="flex flex-wrap gap-1.5">
-                {scoredJob.missing_skills.length > 0 ? scoredJob.missing_skills.slice(0, 4).map(skill => (
-                  <span key={skill} className="skill-chip text-[11px] border-orange-500/30"><ExclamationTriangleIcon className="h-3 w-3 mr-1 text-orange-400" /> {skill}</span>
-                )) : <span className="text-xs text-[var(--apple-text-muted)] italic">None major</span>}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[var(--apple-border)] pt-4">
-            <div className="flex items-center gap-2"><span className="text-sm font-semibold">⭐ Best Project:</span> <span className="text-sm text-blue-400">{scoredJob.best_project.name}</span></div>
-            <div className="text-sm text-[var(--apple-text-muted)]">📊 {scoredJob.applicants || 'N/A'} applicants · {timeAgo(scoredJob.postedAt)} · {scoredJob.workRemoteAllowed ? 'Remote OK' : 'On-site'} · {scoredJob.salary || 'Salary N/A'}</div>
           </div>
         </div>
 
