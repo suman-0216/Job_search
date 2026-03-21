@@ -1,0 +1,1900 @@
+{
+  "scrapedAt": "2026-03-21T07:18:18.032Z",
+  "timestamp": "2026-03-21-0018",
+  "jobs": [
+    {
+      "source": "google-search",
+      "title": "\"founding ai engineer\" OR \"ai engineer\" OR \"software engineer ai\" OR \"machine learning engineer\" \"0-3 years\" \"United States\" (site:jobs.lever.co OR site:boards.greenhouse.io OR site:wellfound.com OR site:linkedin.com/jobs/view)",
+      "role": "\"founding ai engineer\" OR \"ai engineer\" OR \"software engineer ai\" OR \"machine learning engineer\" \"0-3 years\" \"United States\" (site:jobs.lever.co OR site:boards.greenhouse.io OR site:wellfound.com OR site:linkedin.com/jobs/view)",
+      "company": "google.com",
+      "companyName": "google.com",
+      "location": "\"founding ai engineer\" OR \"ai engineer\" OR \"software engineer ai\" OR \"machine learning engineer\" \"0-3 years\" \"United States\" (site:jobs.lever.co OR site:boards.greenhouse.io OR site:wellfound.com OR site:linkedin.com/jobs/view)",
+      "description": "",
+      "link": "http://www.google.com/search?q=%22founding+ai+engineer%22+OR+%22ai+engineer%22+OR+%22software+engineer+ai%22+OR+%22machine+learning+engineer%22+%220-3+years%22+%22United+States%22+%28site%3Ajobs.lever.co+OR+site%3Aboards.greenhouse.io+OR+site%3Awellfound.com+OR+site%3Alinkedin.com%2Fjobs%2Fview%29",
+      "timestamp": "2026-03-21T07:18:18.032Z",
+      "postedAt": "2026-03-21T07:18:18.032Z",
+      "applicants": "N/A",
+      "workRemoteAllowed": false,
+      "employmentType": "",
+      "salary": "",
+      "skills": []
+    },
+    {
+      "source": "google-search",
+      "title": "\"ai engineer\" OR \"ml engineer\" \"San Francisco Bay Area\" \"0-3 years\" jobs",
+      "role": "\"ai engineer\" OR \"ml engineer\" \"San Francisco Bay Area\" \"0-3 years\" jobs",
+      "company": "google.com",
+      "companyName": "google.com",
+      "location": "\"ai engineer\" OR \"ml engineer\" \"San Francisco Bay Area\" \"0-3 years\" jobs",
+      "description": "",
+      "link": "http://www.google.com/search?q=%22ai+engineer%22+OR+%22ml+engineer%22+%22San+Francisco+Bay+Area%22+%220-3+years%22+jobs",
+      "timestamp": "2026-03-21T07:18:18.032Z",
+      "postedAt": "2026-03-21T07:18:18.032Z",
+      "applicants": "N/A",
+      "workRemoteAllowed": false,
+      "employmentType": "",
+      "salary": "",
+      "skills": []
+    },
+    {
+      "source": "google-search",
+      "title": "\"founding engineer\" OR \"ai engineer\" \"California\" \"0-3 years\" (site:jobs.lever.co OR site:boards.greenhouse.io OR site:wellfound.com)",
+      "role": "\"founding engineer\" OR \"ai engineer\" \"California\" \"0-3 years\" (site:jobs.lever.co OR site:boards.greenhouse.io OR site:wellfound.com)",
+      "company": "google.com",
+      "companyName": "google.com",
+      "location": "\"founding engineer\" OR \"ai engineer\" \"California\" \"0-3 years\" (site:jobs.lever.co OR site:boards.greenhouse.io OR site:wellfound.com)",
+      "description": "",
+      "link": "http://www.google.com/search?q=%22founding+engineer%22+OR+%22ai+engineer%22+%22California%22+%220-3+years%22+%28site%3Ajobs.lever.co+OR+site%3Aboards.greenhouse.io+OR+site%3Awellfound.com%29",
+      "timestamp": "2026-03-21T07:18:18.032Z",
+      "postedAt": "2026-03-21T07:18:18.032Z",
+      "applicants": "N/A",
+      "workRemoteAllowed": false,
+      "employmentType": "",
+      "salary": "",
+      "skills": []
+    },
+    {
+      "source": "google-search",
+      "title": "site:jobs.lever.co \"machine learning engineer\" \"San Francisco\"",
+      "role": "site:jobs.lever.co \"machine learning engineer\" \"San Francisco\"",
+      "company": "google.com",
+      "companyName": "google.com",
+      "location": "site:jobs.lever.co \"machine learning engineer\" \"San Francisco\"",
+      "description": "",
+      "link": "http://www.google.com/search?q=site%3Ajobs.lever.co+%22machine+learning+engineer%22+%22San+Francisco%22",
+      "timestamp": "2026-03-21T07:18:18.032Z",
+      "postedAt": "2026-03-21T07:18:18.032Z",
+      "applicants": "N/A",
+      "workRemoteAllowed": false,
+      "employmentType": "",
+      "salary": "",
+      "skills": []
+    },
+    {
+      "source": "google-search",
+      "title": "\"entry level ai engineer\" OR \"junior machine learning engineer\" \"United States\" jobs",
+      "role": "\"entry level ai engineer\" OR \"junior machine learning engineer\" \"United States\" jobs",
+      "company": "google.com",
+      "companyName": "google.com",
+      "location": "\"entry level ai engineer\" OR \"junior machine learning engineer\" \"United States\" jobs",
+      "description": "",
+      "link": "http://www.google.com/search?q=%22entry+level+ai+engineer%22+OR+%22junior+machine+learning+engineer%22+%22United+States%22+jobs",
+      "timestamp": "2026-03-21T07:18:18.032Z",
+      "postedAt": "2026-03-21T07:18:18.032Z",
+      "applicants": "N/A",
+      "workRemoteAllowed": false,
+      "employmentType": "",
+      "salary": "",
+      "skills": []
+    },
+    {
+      "source": "google-search",
+      "title": "\"software engineer ai\" \"California\" \"entry level\" jobs",
+      "role": "\"software engineer ai\" \"California\" \"entry level\" jobs",
+      "company": "google.com",
+      "companyName": "google.com",
+      "location": "\"software engineer ai\" \"California\" \"entry level\" jobs",
+      "description": "",
+      "link": "http://www.google.com/search?q=%22software+engineer+ai%22+%22California%22+%22entry+level%22+jobs",
+      "timestamp": "2026-03-21T07:18:18.032Z",
+      "postedAt": "2026-03-21T07:18:18.032Z",
+      "applicants": "N/A",
+      "workRemoteAllowed": false,
+      "employmentType": "",
+      "salary": "",
+      "skills": []
+    },
+    {
+      "source": "google-search",
+      "title": "\"founding engineer\" \"San Francisco\" startup jobs",
+      "role": "\"founding engineer\" \"San Francisco\" startup jobs",
+      "company": "google.com",
+      "companyName": "google.com",
+      "location": "\"founding engineer\" \"San Francisco\" startup jobs",
+      "description": "",
+      "link": "http://www.google.com/search?q=%22founding+engineer%22+%22San+Francisco%22+startup+jobs",
+      "timestamp": "2026-03-21T07:18:18.032Z",
+      "postedAt": "2026-03-21T07:18:18.032Z",
+      "applicants": "N/A",
+      "workRemoteAllowed": false,
+      "employmentType": "",
+      "salary": "",
+      "skills": []
+    }
+  ],
+  "source_stats": {
+    "linkedin_jobs": 0,
+    "google_indexed_jobs": 7,
+    "merged_unique_jobs": 7,
+    "enriched_jobs": 7
+  },
+  "funded_startups": [
+    {
+      "#debug": {
+        "requestId": "TmhI124FaYKrjKR",
+        "url": "http://www.google.com/search?q=AI+startup+funding+round+Bay+Area+site%3Aforbes.com+OR+site%3Aaxios.com",
+        "loadedUrl": "http://www.google.com/search?q=AI+startup+funding+round+Bay+Area+site%3Aforbes.com+OR+site%3Aaxios.com",
+        "method": "GET",
+        "retryCount": 0,
+        "errorMessages": [],
+        "statusCode": 200
+      },
+      "#error": false,
+      "searchQuery": {
+        "term": "AI startup funding round Bay Area site:forbes.com OR site:axios.com",
+        "url": "http://www.google.com/search?q=AI+startup+funding+round+Bay+Area+site%3Aforbes.com+OR+site%3Aaxios.com",
+        "device": "DESKTOP",
+        "page": 1,
+        "type": "SEARCH",
+        "domain": "google.com",
+        "countryCode": "US",
+        "languageCode": null,
+        "locationUule": null,
+        "resultsPerPage": 10
+      },
+      "url": "http://www.google.com/search?q=AI+startup+funding+round+Bay+Area+site%3Aforbes.com+OR+site%3Aaxios.com",
+      "hasNextPage": true,
+      "serpProviderCode": "N",
+      "resultsTotal": null,
+      "relatedQueries": [
+        {
+          "title": "Ai startup funding round bay area 2023",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Ai+startup+funding+round+bay+area+2023&sa=X&ved=2ahUKEwjZxaLaubCTAxVRUaQEHVvVOrwQ1QJ6BAgyEAE"
+        },
+        {
+          "title": "Ai startup funding round bay area reviews",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Ai+startup+funding+round+bay+area+reviews&sa=X&ved=2ahUKEwjZxaLaubCTAxVRUaQEHVvVOrwQ1QJ6BAgzEAE"
+        },
+        {
+          "title": "Ai startup funding round bay area 2023",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Ai+startup+funding+round+bay+area+2023&sa=X&ved=2ahUKEwjZxaLaubCTAxVRUaQEHVvVOrwQ1QJ6BAgyEAE"
+        },
+        {
+          "title": "Ai startup funding round bay area reviews",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Ai+startup+funding+round+bay+area+reviews&sa=X&ved=2ahUKEwjZxaLaubCTAxVRUaQEHVvVOrwQ1QJ6BAgzEAE"
+        }
+      ],
+      "paidResults": [],
+      "paidProducts": [],
+      "organicResults": [
+        {
+          "title": "Vibe Coding Tool Replit Doubles In Valuation To $3 Billion",
+          "url": "https://www.forbes.com/sites/iainmartin/2025/07/30/vibe-coding-tool-replit-doubles-in-valuation-to-3-billion/",
+          "displayedUrl": "https://www.forbes.com › Innovation",
+          "description": "Bay Area-based Replit helps turn written instructions into working apps and websites has just raised a $250 million round at double its last ...",
+          "date": "2025-07-30T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "Bay Area-based Replit helps turn written instructions into working apps and websites"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 1
+        },
+        {
+          "title": "PolyAI Raises $86 Million As Fight To Answer Calls With AI ...",
+          "url": "https://www.forbes.com/sites/iainmartin/2025/12/15/polyai-raises-86-million-as-fight-to-answer-calls-with-ai-heats-up/",
+          "displayedUrl": "https://www.forbes.com › Innovation",
+          "description": "PolyAI raised $86 million in a Series D funding round co-led by existing investors Georgian, Hedosophia and Khosla Ventures. The valuation ...Read more",
+          "date": "2025-12-15T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "PolyAI raised $86 million in a Series D funding round"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 2
+        },
+        {
+          "title": "These 22-Year-Olds Are Now The World's Youngest Self- ...",
+          "url": "https://www.forbes.com/sites/richardnieva/2025/10/30/mercor-youngest-self-made-billionaires/",
+          "displayedUrl": "https://www.forbes.com › Innovation",
+          "description": "With a new $10 billion valuation for their AI recruiting startup Mercor, the founders are the youngest tech billionaires ever.",
+          "date": "2025-10-30T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "AI",
+            "startup"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 3
+        },
+        {
+          "title": "YC-Backed Octolane Raises Seed To Build The Next AI ...",
+          "url": "https://www.forbes.com/sites/dariashunina/2025/04/14/yc-backed-octolane-raises-seed-to-build-the-next-ai-salesforce/",
+          "displayedUrl": "https://www.forbes.com › Innovation › Venture Capital",
+          "description": "Octolane, the YC-backed startup behind the world's first self-driving AI CRM, today announced a $2.6 million oversubscribed seed round to take on Salesforce.Read more",
+          "date": "2025-04-14T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "Octolane, the YC-backed startup behind the world's first self-driving AI CRM"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 4
+        },
+        {
+          "title": "Inside OpenAI Chairman's $10 Billion AI Customer Service ...",
+          "url": "https://www.forbes.com/sites/richardnieva/2025/11/05/sierra-bret-taylor-clay-bavor/",
+          "displayedUrl": "https://www.forbes.com › Innovation",
+          "description": "In September, the startup raised $350 million in a round that valued the company at $10 billion. “What differentiates them is a high ceiling ...Read more",
+          "date": "2025-11-05T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "startup",
+            "round"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 5
+        },
+        {
+          "title": "This YC Partner Just Raised $30 Million For An AI Startup ...",
+          "url": "https://www.forbes.com/sites/alexkonrad/2025/01/13/yc-surbhi-sarna-raises-30-million-ai-life-sciences/",
+          "displayedUrl": "https://www.forbes.com › Innovation › Venture Capital",
+          "description": "Collate is emerging from stealth with $30 million in seed funding led by Redpoint that values the fledgling business at more than $100 million.Read more",
+          "date": "2025-01-13T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "Collate is emerging from stealth with $30 million in seed funding"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 6
+        },
+        {
+          "title": "TCV's Top European Investor John Doran Relocates To ...",
+          "url": "https://www.forbes.com/sites/iainmartin/2025/08/21/one-of-europes-top-tech-investors-is-heading-to-silicon-valley/",
+          "displayedUrl": "https://www.forbes.com › Innovation",
+          "description": "John Doran, who led TCV's European investments, has relocated to the Bay Area to bolster the $22 billion growth equity fund's team.",
+          "date": "2025-08-21T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "John Doran, who led TCV's European investments"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 7
+        },
+        {
+          "title": "Sequoia Spinoff Peak XV Returns To The Bay Area With ...",
+          "url": "https://www.forbes.com/sites/iainmartin/2025/04/11/sequoia-spinoff-peak-xv-returns-to-the-bay-area-with-new-partner-arnav-sahu/",
+          "displayedUrl": "https://www.forbes.com › Innovation",
+          "description": "The $9 billion venture fund has hired former Y Combinator investor Arnav Sahu to hunt AI deals, and help its startups crack America.Read more",
+          "date": "2025-04-11T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "fund",
+            "AI",
+            "startups"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 8
+        },
+        {
+          "title": "Startup MindsDB Raises $16.5 Million To Power The AI ...",
+          "url": "https://www.forbes.com/sites/kenrickcai/2023/02/07/mindsdb-series-a-funding-ai-in-workplace/",
+          "displayedUrl": "https://www.forbes.com › Innovation › Venture Capital",
+          "description": "MindsDB, a San Francisco Bay Area-based startup that helps developers build AI applications even if they lack AI expertise. It announced Tuesday a $16.5 ...Read more",
+          "date": "2023-02-07T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "MindsDB, a San Francisco Bay Area-based startup"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 9
+        },
+        {
+          "title": "The New Venture Playbook: The Data Every Founder ...",
+          "url": "https://www.forbes.com/sites/kylewestaway/2025/02/24/the-new-venture-playbook-the-data-every-founder-needs-to-know/",
+          "displayedUrl": "https://www.forbes.com › Small Business › Entrepreneurs",
+          "description": "Perhaps the most striking trend in startup funding for 2024 was the continued dominance of artificial intelligence startups. AI companies ...Read more",
+          "date": "2025-02-24T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "startup funding",
+            "artificial intelligence startups",
+            "AI"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 10
+        }
+      ],
+      "suggestedResults": [],
+      "peopleAlsoAsk": [],
+      "customData": null,
+      "htmlSnapshotUrl": "https://api.apify.com/v2/key-value-stores/xSuvN9iDGHCc06Oqx/records/TmhI124FaYKrjKR-0.html?signature=tBj5k905RGUF9tin2B59"
+    },
+    {
+      "#debug": {
+        "requestId": "Jwe73UGlE0HvqQK",
+        "url": "http://www.google.com/search?q=AI+ML+startup+seed+series+A+funding+raised+San+Francisco+last+7+days+site%3Atechcrunch.com",
+        "loadedUrl": "http://www.google.com/search?q=AI+ML+startup+seed+series+A+funding+raised+San+Francisco+last+7+days+site%3Atechcrunch.com",
+        "method": "GET",
+        "retryCount": 0,
+        "errorMessages": [],
+        "statusCode": 200
+      },
+      "#error": false,
+      "searchQuery": {
+        "term": "AI ML startup seed series A funding raised San Francisco last 7 days site:techcrunch.com",
+        "url": "http://www.google.com/search?q=AI+ML+startup+seed+series+A+funding+raised+San+Francisco+last+7+days+site%3Atechcrunch.com",
+        "device": "DESKTOP",
+        "page": 1,
+        "type": "SEARCH",
+        "domain": "google.com",
+        "countryCode": "US",
+        "languageCode": null,
+        "locationUule": null,
+        "resultsPerPage": 10
+      },
+      "url": "http://www.google.com/search?q=AI+ML+startup+seed+series+A+funding+raised+San+Francisco+last+7+days+site%3Atechcrunch.com",
+      "hasNextPage": true,
+      "serpProviderCode": "N",
+      "resultsTotal": null,
+      "relatedQueries": [],
+      "paidResults": [],
+      "paidProducts": [],
+      "organicResults": [
+        {
+          "title": "Co-founders behind Reface and Prisma join hands to ...",
+          "url": "https://techcrunch.com/2026/02/19/co-founders-behind-reface-and-prisma-join-hands-to-improve-on-device-model-inference-with-mirai/",
+          "displayedUrl": "https://techcrunch.com › 2026/02/19 › co-founders-beh...",
+          "description": "Mirai raised a $10 million seed round to improve how AI models run on devices like smartphones and laptops.",
+          "date": "2026-02-19T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "raised",
+            "seed round",
+            "AI"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 1
+        },
+        {
+          "title": "Genesis AI launches with $105M seed funding ...",
+          "url": "https://techcrunch.com/2025/07/01/genesis-ai-launches-with-105m-seed-funding-from-eclipse-khosla-to-build-ai-models-for-robots/",
+          "displayedUrl": "https://techcrunch.com › 2025/07/01 › genesis-ai-launc...",
+          "description": "Genesis AI, a startup that aims to build a foundational model for powering all kinds of robots, has emerged from stealth with a giant $105 million seed round.Read more",
+          "date": "2025-07-01T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "AI",
+            "startup"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 2
+        },
+        {
+          "title": "Here's the full list of 49 US AI startups that have raised ...",
+          "url": "https://techcrunch.com/2024/12/20/heres-the-full-list-of-49-us-ai-startups-that-have-raised-100m-or-more-in-2024/",
+          "displayedUrl": "https://techcrunch.com › 2024/12/20 › heres-the-full-lis...",
+          "description": "AI hardware company Tenstorrent nabbed a $2.7 billion valuation in its latest funding round. The San Francisco-based company raised a $693 ...Read more",
+          "date": "2024-12-20T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "AI",
+            "latest funding round",
+            "San Francisco",
+            "raised"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 3
+        },
+        {
+          "title": "How this founder's unlikely path to Silicon Valley could ...",
+          "url": "https://techcrunch.com/2025/11/21/how-this-founders-unlikely-path-to-silicon-valley-could-become-an-edge-in-industrial-tech/",
+          "displayedUrl": "https://techcrunch.com › 2025/11/21 › how-this-founde...",
+          "description": "The 24-year-old CEO of Interface, a San Francisco startup using AI to prevent industrial accidents, is a white guy with a Caribbean accent ...Read more",
+          "date": "2025-11-21T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "San Francisco startup",
+            "AI"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 4
+        },
+        {
+          "title": "Sumble emerges from stealth with $38.5M to bring AI- ...",
+          "url": "https://techcrunch.com/2025/10/22/sumble-emerges-from-stealth-with-38-5m-to-bring-ai-powered-context-to-sales-intelligence/",
+          "displayedUrl": "https://techcrunch.com › 2025/10/22 › sumble-emerges...",
+          "description": "The startup on Wednesday emerged from stealth with $38.5 million in funding — Coatue led an $8.5 million seed round, while Canaan Partners led a ...Read more",
+          "date": "2025-10-22T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "startup",
+            "funding",
+            "seed round"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 5
+        },
+        {
+          "title": "This Bay Area startup is using AI to help families navigate ...",
+          "url": "https://techcrunch.com/2025/01/29/this-bay-area-startup-is-using-ai-to-help-families-navigate-long-term-care/",
+          "displayedUrl": "https://techcrunch.com › 2025/01/29 › this-bay-area-sta...",
+          "description": "And now the startup has raised $7 million in seed funding led by John Kim, founding partner of Brewer Lane Ventures, with strategic ...Read more",
+          "date": "2025-01-29T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "startup",
+            "raised",
+            "seed funding"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 6
+        },
+        {
+          "title": "Ex-Meta engineer raises $14M for Lace AI, a revenue ...",
+          "url": "https://techcrunch.com/2025/04/22/ex-meta-engineer-raises-14m-for-lace-an-ai-powered-revenue-generation-software-startup/",
+          "displayedUrl": "https://techcrunch.com › 2025/04/22 › ex-meta-enginee...",
+          "description": "The total raised includes a previously unannounced $5 million pre-seed round led by Canvas Ventures and, more recently, a $14 million seed raise ...Read more",
+          "date": "2025-04-22T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "raised",
+            "seed round",
+            "seed raise"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 7
+        },
+        {
+          "title": "Daydream rakes in $50M seed funding to build an AI- ...",
+          "url": "https://techcrunch.com/2024/06/20/former-stitch-fix-coo-julie-bornstein-secures-50m-to-build-a-new-age-e-commerce-search-engine/",
+          "displayedUrl": "https://techcrunch.com › 2024/06/20",
+          "description": "Daydream, a new e-commerce search engine that uses AI to make search more personalized and useful for people, has raised a massive $50 million seed round.Read more",
+          "date": "2024-06-20T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "Daydream, a new e-commerce search engine"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 8
+        },
+        {
+          "title": "Yann LeCun confirms his new 'world model' startup ...",
+          "url": "https://techcrunch.com/2025/12/19/yann-lecun-confirms-his-new-world-model-startup-reportedly-seeks-5b-valuation/",
+          "displayedUrl": "https://techcrunch.com › 2025/12/19 › yann-lecun-conf...",
+          "description": "AMI Labs is also reportedly seeking to raise €500 million (about $586 million) at a €3 billion valuation (about $3.5 billion) right out of the ...Read more",
+          "date": "2025-12-19T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "raise"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 9
+        },
+        {
+          "title": "AvatarOS snags $7M seed round from M13 to build an AI- ...",
+          "url": "https://techcrunch.com/2025/03/10/avataros-snags-7m-seed-round-from-m13-to-build-an-ai-powered-virtual-influencer-platform/",
+          "displayedUrl": "https://techcrunch.com › 2025/03/10 › avataros-snags-7...",
+          "description": "The company said it closed a seed funding round of $7 million led by M13's Latif Peracha with participation from Andreessen Horowitz Games Fund, HF0, Valia ...Read more",
+          "date": "2025-03-10T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "seed funding round"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 10
+        }
+      ],
+      "suggestedResults": [],
+      "peopleAlsoAsk": [],
+      "customData": null,
+      "htmlSnapshotUrl": "https://api.apify.com/v2/key-value-stores/xSuvN9iDGHCc06Oqx/records/Jwe73UGlE0HvqQK-0.html?signature=aFkYYtgt8RuVh2kMGgou"
+    },
+    {
+      "#debug": {
+        "requestId": "Wr3ntYVfb2djkRh",
+        "url": "http://www.google.com/search?q=AI+startup+funding+announcement+site%3Aventurebeat.com+OR+site%3Acrunchbase.com",
+        "loadedUrl": "http://www.google.com/search?q=AI+startup+funding+announcement+site%3Aventurebeat.com+OR+site%3Acrunchbase.com",
+        "method": "GET",
+        "retryCount": 0,
+        "errorMessages": [],
+        "statusCode": 200
+      },
+      "#error": false,
+      "searchQuery": {
+        "term": "AI startup funding announcement site:venturebeat.com OR site:crunchbase.com",
+        "url": "http://www.google.com/search?q=AI+startup+funding+announcement+site%3Aventurebeat.com+OR+site%3Acrunchbase.com",
+        "device": "DESKTOP",
+        "page": 1,
+        "type": "SEARCH",
+        "domain": "google.com",
+        "countryCode": "US",
+        "languageCode": null,
+        "locationUule": null,
+        "resultsPerPage": 10
+      },
+      "url": "http://www.google.com/search?q=AI+startup+funding+announcement+site%3Aventurebeat.com+OR+site%3Acrunchbase.com",
+      "hasNextPage": true,
+      "serpProviderCode": "N",
+      "resultsTotal": null,
+      "relatedQueries": [
+        {
+          "title": "Ai startup funding announcement today",
+          "url": "https://www.google.com/search?sca_esv=27b4386c1dd0bc91&hl=en&gl=US&q=Ai+startup+funding+announcement+today&sa=X&ved=2ahUKEwi9v6TaubCTAxWS38kDHVwGNAEQ1QJ6BAg1EAE"
+        },
+        {
+          "title": "Ai startup funding announcement 2021",
+          "url": "https://www.google.com/search?sca_esv=27b4386c1dd0bc91&hl=en&gl=US&q=Ai+startup+funding+announcement+2021&sa=X&ved=2ahUKEwi9v6TaubCTAxWS38kDHVwGNAEQ1QJ6BAg2EAE"
+        },
+        {
+          "title": "Ai startup funding announcement today",
+          "url": "https://www.google.com/search?sca_esv=27b4386c1dd0bc91&hl=en&gl=US&q=Ai+startup+funding+announcement+today&sa=X&ved=2ahUKEwi9v6TaubCTAxWS38kDHVwGNAEQ1QJ6BAg1EAE"
+        },
+        {
+          "title": "Ai startup funding announcement 2021",
+          "url": "https://www.google.com/search?sca_esv=27b4386c1dd0bc91&hl=en&gl=US&q=Ai+startup+funding+announcement+2021&sa=X&ved=2ahUKEwi9v6TaubCTAxWS38kDHVwGNAEQ1QJ6BAg2EAE"
+        }
+      ],
+      "paidResults": [],
+      "paidProducts": [],
+      "organicResults": [
+        {
+          "title": "The Week's 10 Biggest Funding Rounds: AI, Robotics And ...",
+          "url": "https://news.crunchbase.com/venture/biggest-funding-rounds-ai-robotics-ecommerce-quince/",
+          "displayedUrl": "https://news.crunchbase.com › venture › biggest-funding...",
+          "description": "1. (tied) Nexthop AI, $500M, AI infrastructure: AI networking startup Nexthop AI raised $500 million in Series B funding led by Lightspeed ...Read more",
+          "date": "2026-03-13T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "Nexthop AI raised $500 million in Series B funding"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 1
+        },
+        {
+          "title": "The Week's 10 Biggest Funding Rounds: Investment Slows ...",
+          "url": "https://news.crunchbase.com/venture/biggest-funding-rounds-security-ai-cloaked-frore/",
+          "displayedUrl": "https://news.crunchbase.com › venture › biggest-funding...",
+          "description": "RoboForce, $52M, robotics: RoboForce, a startup focused on developing AI-enabled robot labor for industrial environments, said it picked up ...Read more",
+          "date": "2026-03-20T18:18:24.008Z",
+          "emphasizedKeywords": [
+            "RoboForce, $52M"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 2
+        },
+        {
+          "title": "Massive AI Deals Drive $189B Startup Funding Record In ...",
+          "url": "https://news.crunchbase.com/venture/record-setting-global-funding-february-2026-openai-anthropic/",
+          "displayedUrl": "https://news.crunchbase.com › venture › record-setting-g...",
+          "description": "AI-related startups raised $171 billion in February, accounting for 90% of global venture funding. Other sectors that stood out include hardware ...Read more",
+          "date": "2026-03-03T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "AI-related startups raised $171 billion in February"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 3
+        },
+        {
+          "title": "The Week's 10 Biggest Funding Rounds: Space Tech, AI ...",
+          "url": "https://news.crunchbase.com/venture/biggest-funding-rounds-space-tech-sierra-ai-ayar/",
+          "displayedUrl": "https://news.crunchbase.com › venture › biggest-funding...",
+          "description": "The funding for Paris-based AMI to help it build AI \"world models\" represents the largest seed round ever for a European startup and one of the.Read more",
+          "date": "2026-03-06T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "funding",
+            "AI",
+            "startup"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 4
+        },
+        {
+          "title": "OpenAI's New $110B Raise At A $840B Valuation Marks ...",
+          "url": "https://news.crunchbase.com/venture/openai-raise-largest-ai-venture-deal-ever/",
+          "displayedUrl": "https://news.crunchbase.com › venture › openai-raise-lar...",
+          "description": "OpenAI announced Friday that it has closed on a staggering $110 billion fundraise at an $840 billion post-money valuation. The financing marks ...Read more",
+          "date": "2026-02-27T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "has closed on a staggering $110 billion fundraise"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 5
+        },
+        {
+          "title": "Artificial Intelligence News",
+          "url": "https://news.crunchbase.com/sections/ai/",
+          "displayedUrl": "https://news.crunchbase.com › sections › ai",
+          "description": "Artificial Intelligence News. In 2025, venture funding to AI reached $212 billion — up 85% year over year from $114 billion in 2024 — Crunchbase data shows.Read more",
+          "emphasizedKeywords": [
+            "venture funding to AI reached $212 billion"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 6
+        },
+        {
+          "title": "These Were The Largest Funding Rounds Of 2025",
+          "url": "https://news.crunchbase.com/venture/largest-funding-rounds-genai-defense-eoy-2025/",
+          "displayedUrl": "https://news.crunchbase.com › venture › largest-funding-...",
+          "description": "1. OpenAI, $40B, artificial intelligence: On March 31, OpenAI announced that it secured a $40 billion investment led by SoftBank. The deal for ...Read more",
+          "date": "2026-01-02T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "On March 31, OpenAI announced that it secured a $40 billion investment"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 7
+        },
+        {
+          "title": "Gen AI Video Startup Runway Raises $315M Led By ...",
+          "url": "https://news.crunchbase.com/venture/gen-ai-video-startup-unicorn-runway-seriese-raise/",
+          "displayedUrl": "https://news.crunchbase.com › venture › gen-ai-video-sta...",
+          "description": "Runway, an AI research and technology startup, said Tuesday that it has raised $315 million in a Series E round of funding.Read more",
+          "date": "2026-02-10T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "Runway, an AI research and technology startup"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 8
+        },
+        {
+          "title": "A Growing Share Of Seed And Series A Funding Is Going ...",
+          "url": "https://news.crunchbase.com/venture/seed-seriesa-startup-megadeals-ai-2026/",
+          "displayedUrl": "https://news.crunchbase.com › venture › seed-seriesa-star...",
+          "description": "Per Crunchbase data, over 40% of seed and Series A investment in 2026 has gone to rounds of $100 million or more. That's strikingly high, ...Read more",
+          "date": "2026-01-28T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "over 40% of seed and Series A investment in 2026 has gone to rounds of $100 million"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 9
+        },
+        {
+          "title": "The Week's 10 Biggest Funding Rounds: Anthropic Leads ...",
+          "url": "https://news.crunchbase.com/venture/biggest-funding-rounds-anthropic-leads-ai-robotics/",
+          "displayedUrl": "https://news.crunchbase.com › venture › biggest-funding...",
+          "description": "5. Runway, $315M, AI: Runway, an AI research and technology startup, picked up $315 million in a Series E round. General Atlantic led the ...Read more",
+          "date": "2026-02-13T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "Runway, an AI research and technology startup"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 10
+        }
+      ],
+      "suggestedResults": [],
+      "peopleAlsoAsk": [],
+      "customData": null,
+      "htmlSnapshotUrl": "https://api.apify.com/v2/key-value-stores/xSuvN9iDGHCc06Oqx/records/Wr3ntYVfb2djkRh-0.html?signature=sMlYYNhtP1JHIwX1yqMX"
+    }
+  ],
+  "stealth_startups": [
+    {
+      "#debug": {
+        "requestId": "2xjMCkYfqZBLMoU",
+        "url": "http://www.google.com/search?q=linkedin+stealth+startup+AI+engineer+San+Francisco",
+        "loadedUrl": "http://www.google.com/search?q=linkedin+stealth+startup+AI+engineer+San+Francisco",
+        "method": "GET",
+        "retryCount": 0,
+        "errorMessages": [],
+        "statusCode": 200
+      },
+      "#error": false,
+      "searchQuery": {
+        "term": "linkedin stealth startup AI engineer San Francisco",
+        "url": "http://www.google.com/search?q=linkedin+stealth+startup+AI+engineer+San+Francisco",
+        "device": "DESKTOP",
+        "page": 1,
+        "type": "SEARCH",
+        "domain": "google.com",
+        "countryCode": "US",
+        "languageCode": null,
+        "locationUule": null,
+        "resultsPerPage": 10
+      },
+      "url": "http://www.google.com/search?q=linkedin+stealth+startup+AI+engineer+San+Francisco",
+      "hasNextPage": true,
+      "serpProviderCode": "N",
+      "resultsTotal": null,
+      "relatedQueries": [],
+      "paidResults": [],
+      "paidProducts": [],
+      "organicResults": [
+        {
+          "title": "102 Stealth Startup jobs in San Francisco, California ...",
+          "url": "https://www.linkedin.com/jobs/stealth-startup-jobs-san-francisco-ca",
+          "displayedUrl": "https://www.linkedin.com › jobs › stealth-startup-jobs-sa...",
+          "description": "Today's top 102 Stealth Startup jobs in San Francisco, California, United States. Leverage your professional network, and get hired. New Stealth Startup ...",
+          "date": "2026-03-21T07:18:23.132Z",
+          "emphasizedKeywords": [
+            "102 Stealth Startup jobs in San Francisco"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 1
+        },
+        {
+          "title": "23 Stealth Startup Machine Learning Engineer jobs in ...",
+          "url": "https://www.linkedin.com/jobs/stealth-startup-machine-learning-engineer-jobs",
+          "displayedUrl": "https://www.linkedin.com › jobs › stealth-startup-machin...",
+          "description": "23 Stealth Startup Machine Learning Engineer Jobs in United States ; Machine Learning Engineer [32985] · San Francisco, CA ; Machine Learning Engineer [32990] · San ...Read more",
+          "emphasizedKeywords": [
+            "Machine Learning Engineer [32985] · San Francisco, CA"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 2
+        },
+        {
+          "title": "Stealth AI Startup hiring Head of Engineering in San ...",
+          "url": "https://www.linkedin.com/jobs/view/head-of-engineering-at-stealth-ai-startup-4387159034",
+          "displayedUrl": "https://www.linkedin.com › jobs › view › head-of-engin...",
+          "description": "We are an early-stage, well-funded startup on a mission to expand access to higher education by creating a new kind of collegiate experience for today's ...Read more",
+          "emphasizedKeywords": [
+            "startup"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 3
+        },
+        {
+          "title": "Founding Engineer - Stealth AI Infrastructure Startup",
+          "url": "https://www.linkedin.com/jobs/view/founding-engineer-at-stealth-ai-infrastructure-startup-4387107289",
+          "displayedUrl": "https://www.linkedin.com › jobs › view › founding-engi...",
+          "description": "Stealth AI Infrastructure Startup San Francisco Bay Area. 1 day ago 87 applicants. See who Stealth AI Infrastructure Startup has hired for this role.Read more",
+          "emphasizedKeywords": [
+            "Stealth AI Infrastructure Startup San Francisco Bay Area"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 4
+        },
+        {
+          "title": "Stealth Startup hiring AI Scientist - LLMs [32826]",
+          "url": "https://www.linkedin.com/jobs/view/ai-scientist-llms-32826-at-stealth-startup-4381705652",
+          "displayedUrl": "https://www.linkedin.com › jobs › view › ai-scientist-llm...",
+          "description": "We are seeking an exceptional Lead Researcher to lead and scale a world-class AI research organization focused on advancing the state of the art in machine ...Read more",
+          "emphasizedKeywords": [
+            "AI"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 5
+        },
+        {
+          "title": "Applied AI Engineer [32879] - Stealth Startup",
+          "url": "https://www.linkedin.com/jobs/view/applied-ai-engineer-32879-at-stealth-startup-4384458394",
+          "displayedUrl": "https://www.linkedin.com › jobs › view › applied-ai-engi...",
+          "description": "4 days ago — We are looking for an Applied AI Engineer to help design, train, and deploy production-grade AI models powering next-generation AI agents in ...Read more",
+          "date": "2026-03-17T07:18:23.204Z",
+          "emphasizedKeywords": [
+            "Applied AI Engineer"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 6
+        },
+        {
+          "title": "Stealth AI Startup",
+          "url": "https://www.linkedin.com/company/stealthaistartup",
+          "displayedUrl": "LinkedIn › Stealth AI Startup",
+          "description": "Stealth AI Startup is a private community for founders, researchers, and engineers building next-generation AI companies before public launch.Read more",
+          "emphasizedKeywords": [
+            "Stealth AI Startup"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "followersAmount": "169.2K+ followers",
+          "type": "organic",
+          "position": 7
+        },
+        {
+          "title": "Founding Systems Software Engineer - AI Infrastructure",
+          "url": "https://www.linkedin.com/jobs/view/founding-systems-software-engineer-ai-infrastructure-at-stealth-ai-infrastructure-startup-4387759602",
+          "displayedUrl": "https://www.linkedin.com › jobs › view › founding-syste...",
+          "description": "Founding Systems Software Engineer - AI Infrastructure. Stealth AI Infrastructure Startup San Francisco Bay Area. 7 hours ago Be among the first ...Read more",
+          "emphasizedKeywords": [
+            "Stealth AI Infrastructure Startup San Francisco Bay Area"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 8
+        },
+        {
+          "title": "Machine Learning Engineer [32990] - Stealth Startup",
+          "url": "https://www.linkedin.com/jobs/view/machine-learning-engineer-32990-at-stealth-startup-4383010558",
+          "displayedUrl": "https://www.linkedin.com › jobs › view › machine-learni...",
+          "description": "We are looking to hire in-person in San Francisco. We believe that having a community is critical for learning, growth, and camaraderie. We will pay generously ...Read more",
+          "emphasizedKeywords": [
+            "We are looking to hire in-person in San Francisco"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 9
+        },
+        {
+          "title": "Founding Machine Learning Engineer [32934]",
+          "url": "https://www.linkedin.com/jobs/view/founding-machine-learning-engineer-32934-at-stealth-startup-4384477351",
+          "displayedUrl": "https://www.linkedin.com › jobs › view › founding-mac...",
+          "description": "Founding Machine Learning Engineer [32934]. Stealth Startup San Francisco Bay Area. 3 days ago 91 applicants. See who Stealth Startup has hired for this ...Read more",
+          "emphasizedKeywords": [
+            "Stealth Startup San Francisco Bay Area"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 10
+        }
+      ],
+      "suggestedResults": [],
+      "peopleAlsoAsk": [],
+      "customData": null,
+      "htmlSnapshotUrl": "https://api.apify.com/v2/key-value-stores/CLNmWspL4ysKKnn4v/records/2xjMCkYfqZBLMoU-0.html?signature=x8c1YL962WoUy1aIf6Rp"
+    },
+    {
+      "#debug": {
+        "requestId": "N5rflqspbpIr1Ql",
+        "url": "http://www.google.com/search?q=wellfound.com+jobs+engineer+AI+ML+founding",
+        "loadedUrl": "http://www.google.com/search?q=wellfound.com+jobs+engineer+AI+ML+founding",
+        "method": "GET",
+        "retryCount": 0,
+        "errorMessages": [],
+        "statusCode": 200
+      },
+      "#error": false,
+      "searchQuery": {
+        "term": "wellfound.com jobs engineer AI ML founding",
+        "url": "http://www.google.com/search?q=wellfound.com+jobs+engineer+AI+ML+founding",
+        "device": "DESKTOP",
+        "page": 1,
+        "type": "SEARCH",
+        "domain": "google.com",
+        "countryCode": "US",
+        "languageCode": null,
+        "locationUule": null,
+        "resultsPerPage": 10
+      },
+      "url": "http://www.google.com/search?q=wellfound.com+jobs+engineer+AI+ML+founding",
+      "hasNextPage": true,
+      "serpProviderCode": "N",
+      "resultsTotal": null,
+      "relatedQueries": [
+        {
+          "title": "Wellfound com jobs engineer ai ml founding salary",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Wellfound+com+jobs+engineer+ai+ml+founding+salary&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg2EAE"
+        },
+        {
+          "title": "Wellfound com jobs engineer ai ml founding login",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Wellfound+com+jobs+engineer+ai+ml+founding+login&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg6EAE"
+        },
+        {
+          "title": "Wellfound AI jobs",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Wellfound+AI+jobs&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg7EAE"
+        },
+        {
+          "title": "A i engineer jobs",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=A+i+engineer+jobs&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg5EAE"
+        },
+        {
+          "title": "AI Engineer jobs remote worldwide",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=AI+Engineer+jobs+remote+worldwide&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg4EAE"
+        },
+        {
+          "title": "Wellfound AI Engineer",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Wellfound+AI+Engineer&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg0EAE"
+        },
+        {
+          "title": "AI agent Engineer jobs",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=AI+agent+Engineer+jobs&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg1EAE"
+        },
+        {
+          "title": "Backend AI Engineer jobs",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Backend+AI+Engineer+jobs&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg3EAE"
+        },
+        {
+          "title": "Wellfound com jobs engineer ai ml founding salary",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Wellfound+com+jobs+engineer+ai+ml+founding+salary&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg2EAE"
+        },
+        {
+          "title": "Wellfound com jobs engineer ai ml founding login",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Wellfound+com+jobs+engineer+ai+ml+founding+login&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg6EAE"
+        },
+        {
+          "title": "Wellfound AI jobs",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Wellfound+AI+jobs&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg7EAE"
+        },
+        {
+          "title": "A i engineer jobs",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=A+i+engineer+jobs&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg5EAE"
+        },
+        {
+          "title": "AI Engineer jobs remote worldwide",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=AI+Engineer+jobs+remote+worldwide&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg4EAE"
+        },
+        {
+          "title": "Wellfound AI Engineer",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Wellfound+AI+Engineer&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg0EAE"
+        },
+        {
+          "title": "AI agent Engineer jobs",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=AI+agent+Engineer+jobs&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg1EAE"
+        },
+        {
+          "title": "Backend AI Engineer jobs",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Backend+AI+Engineer+jobs&sa=X&ved=2ahUKEwiHp6LaubCTAxUvVKQEHXB5F40Q1QJ6BAg3EAE"
+        }
+      ],
+      "paidResults": [],
+      "paidProducts": [],
+      "organicResults": [
+        {
+          "title": "AI Engineer Jobs",
+          "url": "https://wellfound.com/role/ai-engineer",
+          "displayedUrl": "https://wellfound.com › role › ai-engineer",
+          "description": "ML Engineer (Senior)Full-time. $140k – $220k. Remote • Seattle. 5 ... Founding AI EngineerFull-time. $140k – $200k • 0.0% – 2.0%. Remote only ...Read more",
+          "emphasizedKeywords": [
+            "Founding AI Engineer"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 1
+        },
+        {
+          "title": "Machine Learning Engineer Jobs",
+          "url": "https://wellfound.com/role/machine-learning-engineer",
+          "displayedUrl": "https://wellfound.com › role › machine-learning-engineer",
+          "description": "Find the best Machine Learning Engineer jobs in 2026 on Wellfound! Apply to all of them with a single profile and get in touch with hiring ...",
+          "emphasizedKeywords": [
+            "Machine Learning Engineer jobs in 2026 on Wellfound"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 2
+        },
+        {
+          "title": "Founding Engineer (Applied AI & ML Ops) at Solstice Health",
+          "url": "https://wellfound.com/jobs/3828475-founding-engineer-applied-ai-ml-ops",
+          "displayedUrl": "https://wellfound.com › jobs › 3828475-founding-engi...",
+          "description": "We are in search of an ML operations engineer who has the drive required to be a part of a founding team looking to tackle a difficult but meaningful problem.Read more",
+          "emphasizedKeywords": [
+            "ML operations engineer"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 3
+        },
+        {
+          "title": "Founding ML Engineer",
+          "url": "https://wellfound.com/jobs/3756479-founding-ml-engineer",
+          "displayedUrl": "https://wellfound.com › jobs › 3756479-founding-ml-e...",
+          "description": "As a Founding ML Engineer, you will be a crucial part of our initial team, playing a pivotal role in designing, post-training, and deploying the agent loops ...Read more",
+          "emphasizedKeywords": [
+            "Founding ML Engineer"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 4
+        },
+        {
+          "title": "Artificial Intelligence Engineer (AI) Jobs",
+          "url": "https://wellfound.com/role/artificial-intelligence-engineer",
+          "displayedUrl": "https://wellfound.com › role › artificial-intelligence-eng...",
+          "description": "Artificial Intelligence/Machine Learning (AI/ML) EngineerFull-time. $140k – $200k. In office • Arlington. 5 years of exp. 3 months ago. 3 months ...Read more",
+          "emphasizedKeywords": [
+            "Artificial Intelligence/Machine Learning (AI/ML) Engineer"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 5
+        },
+        {
+          "title": "Machine Learning Engineer Jobs in United States - 2026",
+          "url": "https://wellfound.com/role/l/machine-learning-engineer/united-states",
+          "displayedUrl": "https://wellfound.com › role › united-states",
+          "description": "Find the best Machine Learning Engineer jobs in United States in 2026! Apply to all of them with a single profile and get in touch with hiring ...",
+          "emphasizedKeywords": [
+            "Machine Learning Engineer jobs in United States in 2026"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 6
+        },
+        {
+          "title": "Founding Engineer at Quest AI • San Francisco",
+          "url": "https://wellfound.com/jobs/3891154-founding-engineer",
+          "displayedUrl": "https://wellfound.com › jobs › 3891154-founding-engi...",
+          "description": "TL;DR: We're building an AI mentor that knows you deeply and pushes you to grow. Not a chatbot. Not an assistant. A mentor that observes your life, ...Read more",
+          "emphasizedKeywords": [
+            "AI"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 7
+        },
+        {
+          "title": "Remote Artificial Intelligence Engineer (AI) Jobs in 2026",
+          "url": "https://wellfound.com/role/r/artificial-intelligence-engineer",
+          "displayedUrl": "https://wellfound.com › role › artificial-intelligence-eng...",
+          "description": "Artificial Intelligence/Machine Learning (AI/ML) EngineerFull-time ... Founding AI Research EngineerFull-time. $120k – $200k • 0.8% – 2.5 ...Read more",
+          "emphasizedKeywords": [
+            "Founding AI Research Engineer"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 8
+        },
+        {
+          "title": "Artificial Intelligence Engineer (AI) Jobs in United States",
+          "url": "https://wellfound.com/role/l/artificial-intelligence-engineer/united-states",
+          "displayedUrl": "https://wellfound.com › role › united-states",
+          "description": "Find the best Artificial Intelligence Engineer (AI) jobs in United States in 2026! Apply to all of them with a single profile and get in touch ...",
+          "emphasizedKeywords": [
+            "Artificial Intelligence Engineer (AI) jobs in United States in 2026"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 9
+        },
+        {
+          "title": "Remote Machine Learning Engineer Jobs in 2026",
+          "url": "https://wellfound.com/role/r/machine-learning-engineer",
+          "displayedUrl": "https://wellfound.com › role › machine-learning-engineer",
+          "description": "Find the best remote Machine Learning Engineer jobs in 2026 on Wellfound! Apply to all of them with a single profile and get in touch with hiring ...",
+          "emphasizedKeywords": [
+            "Find the best remote Machine Learning Engineer jobs in 2026 on Wellfound"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 10
+        }
+      ],
+      "suggestedResults": [],
+      "peopleAlsoAsk": [],
+      "customData": null,
+      "htmlSnapshotUrl": "https://api.apify.com/v2/key-value-stores/CLNmWspL4ysKKnn4v/records/N5rflqspbpIr1Ql-0.html?signature=fbEYZ3YG9eKVlIYzplgd"
+    },
+    {
+      "#debug": {
+        "requestId": "3RStWrOWwtULPSU",
+        "url": "http://www.google.com/search?q=site%3Aycombinator.com%2Fjobs+AI+engineer",
+        "loadedUrl": "http://www.google.com/search?q=site%3Aycombinator.com%2Fjobs+AI+engineer",
+        "method": "GET",
+        "retryCount": 0,
+        "errorMessages": [],
+        "statusCode": 200
+      },
+      "#error": false,
+      "searchQuery": {
+        "term": "site:ycombinator.com/jobs AI engineer",
+        "url": "http://www.google.com/search?q=site%3Aycombinator.com%2Fjobs+AI+engineer",
+        "device": "DESKTOP",
+        "page": 1,
+        "type": "SEARCH",
+        "domain": "google.com",
+        "countryCode": "US",
+        "languageCode": null,
+        "locationUule": null,
+        "resultsPerPage": 10
+      },
+      "url": "http://www.google.com/search?q=site%3Aycombinator.com%2Fjobs+AI+engineer",
+      "hasNextPage": true,
+      "serpProviderCode": "N",
+      "resultsTotal": null,
+      "relatedQueries": [
+        {
+          "title": "Junior AI Engineer",
+          "url": "https://www.google.com/search?sca_esv=27b4386c1dd0bc91&hl=en&gl=US&q=Junior+AI+Engineer&sa=X&ved=2ahUKEwjsyrvaubCTAxU4KFkFHYWCN90Q1QJ6BAgzEAE"
+        },
+        {
+          "title": "Ai in crimson desert",
+          "url": "https://www.google.com/search?sca_esv=27b4386c1dd0bc91&hl=en&gl=US&q=Ai+in+crimson+desert&sa=X&ved=2ahUKEwjsyrvaubCTAxU4KFkFHYWCN90Q1QJ6BAg0EAE"
+        },
+        {
+          "title": "Trump ai",
+          "url": "https://www.google.com/search?sca_esv=27b4386c1dd0bc91&hl=en&gl=US&q=Trump+ai&sa=X&ved=2ahUKEwjsyrvaubCTAxU4KFkFHYWCN90Q1QJ6BAgyEAE"
+        },
+        {
+          "title": "Junior AI Engineer",
+          "url": "https://www.google.com/search?sca_esv=27b4386c1dd0bc91&hl=en&gl=US&q=Junior+AI+Engineer&sa=X&ved=2ahUKEwjsyrvaubCTAxU4KFkFHYWCN90Q1QJ6BAgzEAE"
+        },
+        {
+          "title": "Ai in crimson desert",
+          "url": "https://www.google.com/search?sca_esv=27b4386c1dd0bc91&hl=en&gl=US&q=Ai+in+crimson+desert&sa=X&ved=2ahUKEwjsyrvaubCTAxU4KFkFHYWCN90Q1QJ6BAg0EAE"
+        },
+        {
+          "title": "Trump ai",
+          "url": "https://www.google.com/search?sca_esv=27b4386c1dd0bc91&hl=en&gl=US&q=Trump+ai&sa=X&ved=2ahUKEwjsyrvaubCTAxU4KFkFHYWCN90Q1QJ6BAgyEAE"
+        }
+      ],
+      "paidResults": [],
+      "paidProducts": [],
+      "organicResults": [
+        {
+          "title": "Software Engineer jobs at Y Combinator startups",
+          "url": "https://www.ycombinator.com/jobs/role/machine-learning",
+          "displayedUrl": "https://www.ycombinator.com › role › machine-learning",
+          "description": "Many YC startups are seeing breakout growth, and are actively hiring for software engineers. Find some of the top YC companies at Y Combinator.",
+          "emphasizedKeywords": [
+            "actively hiring for software engineers"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 1
+        },
+        {
+          "title": "Software Engineer jobs at Y Combinator startups",
+          "url": "https://www.ycombinator.com/jobs/role/ajax/aggregate",
+          "displayedUrl": "https://www.ycombinator.com › role › ajax › aggregate",
+          "description": "Keeper (W19)•AI tax filing for complex returns(12 days ago)AI/ML Engineer ... AI Engineer. Full-time. •. Engineering. •. Machine learning. •. $300K - $350K. •.Read more",
+          "emphasizedKeywords": [
+            "AI Engineer"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 2
+        },
+        {
+          "title": "San Francisco Bay Area startup jobs ...",
+          "url": "https://www.ycombinator.com/jobs/role/software-engineer/san-francisco-bay-area",
+          "displayedUrl": "https://www.ycombinator.com › role › software-engineer",
+          "description": "San Francisco Bay Area has fast-growing Y Combinator startups that are well funded and hiring for software engineers. Find thousands of jobs and connect ...Read more",
+          "emphasizedKeywords": [
+            "engineers"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 3
+        },
+        {
+          "title": "Software Engineer jobs at Y Combinator startups",
+          "url": "https://www.ycombinator.com/jobs/role/jserrors/aggregate",
+          "displayedUrl": "https://www.ycombinator.com › jserrors › aggregate",
+          "description": "... AI Engineer (remote). Full-time. •. Engineering. •. Data science. •. $20K - $36K ... Engineer with AI experience. Full-time. •. Engineering. •. Full stack. •.Read more",
+          "emphasizedKeywords": [
+            "AI Engineer",
+            "Engineering",
+            "Engineer",
+            "AI",
+            "Engineering"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 4
+        },
+        {
+          "title": "Software Engineer jobs at Y Combinator startups in Bellevue",
+          "url": "https://www.ycombinator.com/jobs/role/software-engineer/bellevue",
+          "displayedUrl": "https://www.ycombinator.com › jobs › role › bellevue",
+          "description": "Bellevue has fast-growing Y Combinator startups that are well funded and hiring for software engineers. Find thousands of jobs and connect directly with ...Read more",
+          "emphasizedKeywords": [
+            "engineers"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 5
+        },
+        {
+          "title": "jobs",
+          "url": "https://news.ycombinator.com/jobs?next=45184921&n=181",
+          "displayedUrl": "https://news.ycombinator.com › jobs",
+          "description": "Weave (YC W25) is hiring a founding AI engineer (ycombinator.com). 6 months ago. 182. Nango (YC W23) Is Hiring a Staff Back End Engineer (Remote) ...Read more",
+          "emphasizedKeywords": [
+            "Weave (YC W25) is hiring a founding AI engineer"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 6
+        },
+        {
+          "title": "Software Engineer jobs at Y Combinator startups in San ...",
+          "url": "https://www.ycombinator.com/jobs/role/software-engineer/san-francisco",
+          "displayedUrl": "https://www.ycombinator.com › role › san-francisco",
+          "description": "Founding AI Engineer. Full-time. •. Engineering. •. Full stack. •. $160K - $200K ... Keeper (W19)•AI tax filing for complex returns(8 days ago)AI/ML Engineer.Read more",
+          "emphasizedKeywords": [
+            "Founding AI Engineer"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 7
+        },
+        {
+          "title": "Software Engineer jobs at Y Combinator startups in East ...",
+          "url": "https://www.ycombinator.com/jobs/role/software-engineer/east-palo-alto",
+          "displayedUrl": "https://www.ycombinator.com › role › east-palo-alto",
+          "description": "East Palo Alto has fast-growing Y Combinator startups that are well funded and hiring for software engineers. Find thousands of jobs and connect directly ...",
+          "emphasizedKeywords": [
+            "engineers"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 8
+        },
+        {
+          "title": "Software Engineer jobs at Y Combinator startups",
+          "url": "https://www.ycombinator.com/jobs/role/product-",
+          "displayedUrl": "https://www.ycombinator.com › jobs › role › product-",
+          "description": "Many YC startups are seeing breakout growth, and are actively hiring for software engineers. Find some of the top YC companies at Y Combinator.",
+          "emphasizedKeywords": [
+            "actively hiring for software engineers"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 9
+        },
+        {
+          "title": "Software Engineer jobs at Y Combinator startups",
+          "url": "https://www.ycombinator.com/jobs/role/engineering",
+          "displayedUrl": "https://www.ycombinator.com › jobs › role › engineering",
+          "description": "Many YC startups are seeing breakout growth, and are actively hiring for software engineers. Find some of the top YC companies at Y Combinator.",
+          "emphasizedKeywords": [
+            "actively hiring for software engineers"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 10
+        }
+      ],
+      "suggestedResults": [],
+      "peopleAlsoAsk": [],
+      "customData": null,
+      "htmlSnapshotUrl": "https://api.apify.com/v2/key-value-stores/CLNmWspL4ysKKnn4v/records/3RStWrOWwtULPSU-0.html?signature=1Cra9MiKPmOEVwA8eaVlt"
+    },
+    {
+      "#debug": {
+        "requestId": "LHcLAR2anKAELGU",
+        "url": "http://www.google.com/search?q=site%3Aboards.greenhouse.io+AI+machine+learning+engineer+startup+careers",
+        "loadedUrl": "http://www.google.com/search?q=site%3Aboards.greenhouse.io+AI+machine+learning+engineer+startup+careers",
+        "method": "GET",
+        "retryCount": 0,
+        "errorMessages": [],
+        "statusCode": 200
+      },
+      "#error": false,
+      "searchQuery": {
+        "term": "site:boards.greenhouse.io AI machine learning engineer startup careers",
+        "url": "http://www.google.com/search?q=site%3Aboards.greenhouse.io+AI+machine+learning+engineer+startup+careers",
+        "device": "DESKTOP",
+        "page": 1,
+        "type": "SEARCH",
+        "domain": "google.com",
+        "countryCode": "US",
+        "languageCode": null,
+        "locationUule": null,
+        "resultsPerPage": 10
+      },
+      "url": "http://www.google.com/search?q=site%3Aboards.greenhouse.io+AI+machine+learning+engineer+startup+careers",
+      "hasNextPage": true,
+      "serpProviderCode": "N",
+      "resultsTotal": null,
+      "relatedQueries": [
+        {
+          "title": "Ai machine learning engineer startup careers salary",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Ai+machine+learning+engineer+startup+careers+salary&sa=X&ved=2ahUKEwjw6cnaubCTAxWY1ckDHYz9KQgQ1QJ6BAg0EAE"
+        },
+        {
+          "title": "Ai machine learning engineer startup careers remote",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Ai+machine+learning+engineer+startup+careers+remote&sa=X&ved=2ahUKEwjw6cnaubCTAxWY1ckDHYz9KQgQ1QJ6BAg1EAE"
+        },
+        {
+          "title": "Ai machine learning engineer startup careers salary",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Ai+machine+learning+engineer+startup+careers+salary&sa=X&ved=2ahUKEwjw6cnaubCTAxWY1ckDHYz9KQgQ1QJ6BAg0EAE"
+        },
+        {
+          "title": "Ai machine learning engineer startup careers remote",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Ai+machine+learning+engineer+startup+careers+remote&sa=X&ved=2ahUKEwjw6cnaubCTAxWY1ckDHYz9KQgQ1QJ6BAg1EAE"
+        }
+      ],
+      "paidResults": [],
+      "paidProducts": [],
+      "organicResults": [
+        {
+          "title": "Founding ML Engineer (Stealth Healthcare Startup)",
+          "url": "https://boards.greenhouse.io/redcellpartners/jobs/5055187007",
+          "displayedUrl": "https://boards.greenhouse.io › redcellpartners › jobs",
+          "description": "Work alongside senior engineers to build and improve our health intelligence engine—including conversational AI, recommendation models, and pattern detection.Read more",
+          "emphasizedKeywords": [
+            "Work alongside senior engineers"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 1
+        },
+        {
+          "title": "Job Application for Sr. AI Engineer at Narvar",
+          "url": "https://boards.greenhouse.io/narvar/jobs/7363442",
+          "displayedUrl": "https://boards.greenhouse.io › narvar › jobs",
+          "description": "We're looking for senior AI engineers to own this system end-to-end: architecture, model selection, production operations. You'll help decide what gets built ...Read more",
+          "emphasizedKeywords": [
+            "senior AI engineers"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 2
+        },
+        {
+          "title": "Careers | Automation engineering & more",
+          "url": "https://boards.greenhouse.io/appliedintuition/jobs/4424583005",
+          "displayedUrl": "https://boards.greenhouse.io › appliedintuition › jobs",
+          "description": "Explore AI engineer jobs & automation engineering roles at Applied Intuition building software for ADAS, autonomous vehicles, & intelligent machines.",
+          "emphasizedKeywords": [
+            "Explore AI engineer jobs & automation engineering roles at Applied Intuition"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 3
+        },
+        {
+          "title": "Staff Software Engineer, Dev AI, Developer Infrastructure",
+          "url": "https://boards.greenhouse.io/airbnb/jobs/7729271",
+          "displayedUrl": "https://boards.greenhouse.io › Positions",
+          "description": "In this role, you will help to shape and execute the technical direction of the team's infrastructure and products. You'll work across a range of exciting ...Read more",
+          "emphasizedKeywords": [
+            "shape and execute the technical direction of the team's infrastructure and products"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 4
+        },
+        {
+          "title": "Job Application for Machine Learning Engineer at Easyship",
+          "url": "https://boards.greenhouse.io/easyship/jobs/4660213006",
+          "displayedUrl": "https://boards.greenhouse.io › easyship › jobs",
+          "description": "You have 3+ years of experience in Machine Learning, Applied ML, or Data Science roles. You have experience building and deploying ML models into production.Read more",
+          "emphasizedKeywords": [
+            "Machine Learning"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 5
+        },
+        {
+          "title": "Arcee AI | Careers",
+          "url": "https://boards.greenhouse.io/arceeai/jobs/4171812008?utm_source=Emergence+job+board&utm_medium=getro.com&gh_src=Emergence+job+board",
+          "displayedUrl": "https://boards.greenhouse.io › arceeai › jobs",
+          "description": "Join Arcee AI and be part of the growing, innovative team that's pushing the boundaries of American open source AI.",
+          "emphasizedKeywords": [
+            "AI",
+            "AI"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 6
+        },
+        {
+          "title": "Senior Machine Learning Engineer II - SIP Telephony",
+          "url": "https://boards.greenhouse.io/capitalrx/jobs/5134991008",
+          "displayedUrl": "https://boards.greenhouse.io › capitalrx › jobs",
+          "description": "In this role you will be responsible for designing and building greenfield telephony infrastructure, including SIP trunking, real-time audio streaming, and call ...Read more",
+          "emphasizedKeywords": [
+            "designing and building greenfield telephony infrastructure"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 7
+        },
+        {
+          "title": "Machine Learning and Quant Engineer - London | Reflexivity",
+          "url": "https://boards.greenhouse.io/toggleai/jobs/5021397007",
+          "displayedUrl": "https://boards.greenhouse.io › toggleai › jobs",
+          "description": "5 plus years experience in quant, ML, or financial modeling · Strong Python skills · Startup experience on core systems · Investment domain knowledge · AI-assisted ...Read more",
+          "emphasizedKeywords": [
+            "Startup",
+            "AI"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 8
+        },
+        {
+          "title": "Jobs at Wayve | First - FirstStage",
+          "url": "https://boards.greenhouse.io/wayve/jobs/7626108002",
+          "displayedUrl": "https://boards.greenhouse.io › wayve › jobs",
+          "description": "55 jobs open · AI Engineering · AI Platform · AV Engineering · Commercial & Operations · Commercial & Operations / Business Development and Partnerships · Commercial ...Read more",
+          "emphasizedKeywords": [
+            "AI Engineering"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 9
+        },
+        {
+          "title": "Jobs at Meshy",
+          "url": "https://boards.greenhouse.io/meshy/jobs/4773090008",
+          "displayedUrl": "https://boards.greenhouse.io › meshy › jobs",
+          "description": "Who You Are We are looking for Machine Learning Systems Engineers who can help us build the world's largest end-to-end 3D native machine learning systems.Read more",
+          "emphasizedKeywords": [
+            "Machine Learning Systems Engineers"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 10
+        }
+      ],
+      "suggestedResults": [],
+      "peopleAlsoAsk": [],
+      "customData": null,
+      "htmlSnapshotUrl": "https://api.apify.com/v2/key-value-stores/CLNmWspL4ysKKnn4v/records/LHcLAR2anKAELGU-0.html?signature=1ayljD9QxERz6MbAjABka"
+    },
+    {
+      "#debug": {
+        "requestId": "2dvzwqZMVBwguPu",
+        "url": "http://www.google.com/search?q=site%3Ajobs.lever.co+AI+engineer+startup",
+        "loadedUrl": "http://www.google.com/search?q=site%3Ajobs.lever.co+AI+engineer+startup",
+        "method": "GET",
+        "retryCount": 0,
+        "errorMessages": [],
+        "statusCode": 200
+      },
+      "#error": false,
+      "searchQuery": {
+        "term": "site:jobs.lever.co AI engineer startup",
+        "url": "http://www.google.com/search?q=site%3Ajobs.lever.co+AI+engineer+startup",
+        "device": "DESKTOP",
+        "page": 1,
+        "type": "SEARCH",
+        "domain": "google.com",
+        "countryCode": "US",
+        "languageCode": null,
+        "locationUule": null,
+        "resultsPerPage": 10
+      },
+      "url": "http://www.google.com/search?q=site%3Ajobs.lever.co+AI+engineer+startup",
+      "hasNextPage": true,
+      "serpProviderCode": "N",
+      "resultsTotal": null,
+      "relatedQueries": [],
+      "paidResults": [],
+      "paidProducts": [],
+      "organicResults": [
+        {
+          "title": "Turgon AI - Generative AI Engineer",
+          "url": "https://jobs.lever.co/turgon-ai/6a5156f3-e6e3-4fbb-ad83-7848aa8e9379",
+          "displayedUrl": "https://jobs.lever.co › turgon-ai",
+          "description": "We are a startup based in San Francisco and New Delhi, founded by serial entrepreneurs. We are building out our core team to re-imagine and build an AI ...Read more",
+          "emphasizedKeywords": [
+            "startup based in San Francisco and New Delhi"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 1
+        },
+        {
+          "title": "Instrumentl - AI Data Engineer",
+          "url": "https://jobs.lever.co/Instrumentl/0e249451-c796-413e-8456-4cd7f0177cff",
+          "displayedUrl": "https://jobs.lever.co › Instrumentl",
+          "description": "As an AI Data Engineer at Instrumentl, you'll own the systems that discover, acquire, and transform unstructured content into clean, structured, queryable data.Read more",
+          "emphasizedKeywords": [
+            "own the systems that discover, acquire, and transform unstructured content"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 2
+        },
+        {
+          "title": "Palantir Technologies - Forward Deployed AI Engineer",
+          "url": "https://jobs.lever.co/palantir/636fc05c-d348-4a06-be51-597cb9e07488",
+          "displayedUrl": "https://jobs.lever.co › palantir",
+          "description": "Forward Deployed AI Engineers work directly with customers owning Gen AI strategy and implementation. On a daily basis, you will build end-to-end workflows.Read more",
+          "emphasizedKeywords": [
+            "Forward Deployed AI Engineers"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 3
+        },
+        {
+          "title": "Collate - AI Engineer",
+          "url": "https://jobs.lever.co/collate/377f2cf3-6285-42c1-8130-dd3dd2c866cb",
+          "displayedUrl": "https://jobs.lever.co › collate",
+          "description": "Hands-on experience building and deploying ML/AI systems in production. Strong foundation in deploying search and retrieval systems and NLP applications.Read more",
+          "emphasizedKeywords": [
+            "Hands-on experience building and deploying ML/AI systems in production"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 4
+        },
+        {
+          "title": "Machine Learning Engineer (AI Platform Lead) - Artera",
+          "url": "https://jobs.lever.co/artera/d3c0ca46-28cd-4193-a678-ef95002dce01",
+          "displayedUrl": "https://jobs.lever.co › artera",
+          "description": "About Us: Artera is an AI startup that develops medical artificial intelligence tests to personalize therapy for cancer patients.Read more",
+          "emphasizedKeywords": [
+            "Artera is an AI startup"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 5
+        },
+        {
+          "title": "AI/ML Ops Engineer - Foundation EGI",
+          "url": "https://jobs.lever.co/foundation-llm-technologies/3315519b-86ee-4658-9f10-30db71129d44",
+          "displayedUrl": "https://jobs.lever.co › foundation-llm-technologies",
+          "description": "We are an MIT-born, venture-backed Silicon Valley startup building a real-life 'Jarvis'—an AI Copilot for design and manufacturing.Read more",
+          "emphasizedKeywords": [
+            "MIT-born, venture-backed Silicon Valley startup"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 6
+        },
+        {
+          "title": "Level AI - Implementation Engineer (Remote)",
+          "url": "https://jobs.lever.co/levelai/d945bf73-e7f4-410f-8bd0-2b0c27195379",
+          "displayedUrl": "https://jobs.lever.co › levelai",
+          "description": "Level AI revolutionizes customer engagement by transforming contact centers into strategic assets. Our AI-native platform leverages advanced technologies such ...Read more",
+          "emphasizedKeywords": [
+            "Level AI revolutionizes customer engagement"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 7
+        },
+        {
+          "title": "AI Engineer - Panopto",
+          "url": "https://jobs.lever.co/panopto/4c4fe959-597b-493f-bc08-a3a268153a32?utm_source=EdTechJobs.io",
+          "displayedUrl": "https://jobs.lever.co › panopto",
+          "description": "We are looking for someone who loves solving AI and systems challenges end‑to‑end, can move quickly in a “startup inside a larger company” environment, and ...Read more",
+          "emphasizedKeywords": [
+            "can move quickly in a “startup inside a larger company” environment"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 8
+        },
+        {
+          "title": "Turgon AI - Senior AI Engineer",
+          "url": "https://jobs.lever.co/turgon-ai/3219f081-500a-4a63-b60a-db8c4f540c0b",
+          "displayedUrl": "https://jobs.lever.co › turgon-ai",
+          "description": "We are looking for a Senior AI Engineer to take ownership of our most complex agentic workflows. ... Previous experience in a Founding Engineer or early-stage ...Read more",
+          "emphasizedKeywords": [
+            "Senior AI Engineer"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 9
+        },
+        {
+          "title": "SuperAnnotate AI - Senior Full-stack Engineer",
+          "url": "https://jobs.lever.co/superannotate/cd33e71c-50c1-45a6-85b2-fd7edbe5e065",
+          "displayedUrl": "https://jobs.lever.co › superannotate",
+          "description": "SuperAnnotate is a fast-growing, Series B startup revolutionizing the field of AI-data Infrastructure. We specialize in providing cutting-edge data pipeline ...Read more",
+          "emphasizedKeywords": [
+            "SuperAnnotate is a fast-growing, Series B startup"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 10
+        }
+      ],
+      "suggestedResults": [],
+      "peopleAlsoAsk": [],
+      "customData": null,
+      "htmlSnapshotUrl": "https://api.apify.com/v2/key-value-stores/CLNmWspL4ysKKnn4v/records/2dvzwqZMVBwguPu-0.html?signature=NdBWUFYMqPjCJv5BIr25"
+    },
+    {
+      "#debug": {
+        "requestId": "UFcadWbsTAX1Fxy",
+        "url": "http://www.google.com/search?q=ycombinator.com+W26+OR+S26+batch+AI",
+        "loadedUrl": "http://www.google.com/search?q=ycombinator.com+W26+OR+S26+batch+AI",
+        "method": "GET",
+        "retryCount": 0,
+        "errorMessages": [],
+        "statusCode": 200
+      },
+      "#error": false,
+      "searchQuery": {
+        "term": "ycombinator.com W26 OR S26 batch AI",
+        "url": "http://www.google.com/search?q=ycombinator.com+W26+OR+S26+batch+AI",
+        "device": "DESKTOP",
+        "page": 1,
+        "type": "SEARCH",
+        "domain": "google.com",
+        "countryCode": "US",
+        "languageCode": null,
+        "locationUule": null,
+        "resultsPerPage": 10
+      },
+      "url": "http://www.google.com/search?q=ycombinator.com+W26+OR+S26+batch+AI",
+      "hasNextPage": true,
+      "serpProviderCode": "N",
+      "resultsTotal": null,
+      "relatedQueries": [
+        {
+          "title": "YC login",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=YC+login&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAgvEAE"
+        },
+        {
+          "title": "Sarah AI YC",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Sarah+AI+YC&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAhHEAE"
+        },
+        {
+          "title": "YC tech",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=YC+tech&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAhDEAE"
+        },
+        {
+          "title": "Y Combinator news",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Y+Combinator+news&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAg-EAE"
+        },
+        {
+          "title": "YC products",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=YC+products&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAg5EAE"
+        },
+        {
+          "title": "YC Schedule",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=YC+Schedule&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAg2EAE"
+        },
+        {
+          "title": "Hlabs yc",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Hlabs+yc&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAg0EAE"
+        },
+        {
+          "title": "Luel YC",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Luel+YC&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAgwEAE"
+        },
+        {
+          "title": "YC login",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=YC+login&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAgvEAE"
+        },
+        {
+          "title": "Sarah AI YC",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Sarah+AI+YC&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAhHEAE"
+        },
+        {
+          "title": "YC tech",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=YC+tech&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAhDEAE"
+        },
+        {
+          "title": "Y Combinator news",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Y+Combinator+news&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAg-EAE"
+        },
+        {
+          "title": "YC products",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=YC+products&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAg5EAE"
+        },
+        {
+          "title": "YC Schedule",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=YC+Schedule&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAg2EAE"
+        },
+        {
+          "title": "Hlabs yc",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Hlabs+yc&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAg0EAE"
+        },
+        {
+          "title": "Luel YC",
+          "url": "https://www.google.com/search?sca_esv=0b10a224d953a9d1&hl=en&gl=US&q=Luel+YC&sa=X&ved=2ahUKEwi58erbubCTAxWEv4kEHaHjKlkQ1QJ6BAgwEAE"
+        }
+      ],
+      "paidResults": [],
+      "paidProducts": [],
+      "organicResults": [
+        {
+          "title": "Winter 2026",
+          "url": "https://www.ycombinator.com/companies?batch=Winter%202026",
+          "displayedUrl": "https://www.ycombinator.com › companies › batch=Wi...",
+          "description": "No information is available for this page.",
+          "emphasizedKeywords": [],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 1
+        },
+        {
+          "title": "On the freakishly strong YC W26 batch - Jared Heyman",
+          "url": "https://jaredheyman.medium.com/on-the-freakishly-strong-yc-w26-batch-056ccb666076",
+          "displayedUrl": "130+ likes  ·  1 week ago",
+          "description": "To illustrate the strength of W26, this chart shows the percentage of startups in each YC batch over the past few years that are “top 20% ...Read more",
+          "emphasizedKeywords": [
+            "W26",
+            "batch"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 2
+        },
+        {
+          "title": "Y Combinator W26 Batch Companies",
+          "url": "https://www.extruct.ai/data-room/ycombinator-companies-w26/",
+          "displayedUrl": "https://www.extruct.ai › data-room › ycombinator-com...",
+          "description": "Discover YC Batch W26 with interactive tables packed with detailed startup data and AI-powered insights. Explore innovative companies and ...",
+          "date": "2026-01-29T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "interactive tables packed with detailed startup data and AI-powered insights"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 3
+        },
+        {
+          "title": "Y Combinator W26 Batch: B2B, Healthcare, and AI ...",
+          "url": "https://www.linkedin.com/posts/yrebryk_180-startups-joined-y-combinators-w26-batch-activity-7437482492011577344-v2h-",
+          "displayedUrl": "LinkedIn › Yurii Rebryk",
+          "description": "180+ startups joined Y Combinator's W26 batch. Here's what they're building: Demo Day is less than 3 weeks away - and this batch tells a ...",
+          "emphasizedKeywords": [
+            "180+ startups joined Y Combinator's W26 batch"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 4
+        },
+        {
+          "title": "Y Combinator W26 Batch: The Complete Company Database",
+          "url": "https://www.thevccorner.com/p/yc-w26-batch-complete-company-database",
+          "displayedUrl": "https://www.thevccorner.com › yc-w26-batch-complete...",
+          "description": "Up from 40% in 2024. The batch is full of companies rebuilding entire workflows around AI. YC Partners This Batch. Community Engagement Leaders ...Read more",
+          "date": "2026-03-09T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "batch",
+            "AI",
+            "Batch"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 5
+        },
+        {
+          "title": "Winter '26 Megathread : r/ycombinator",
+          "url": "https://www.reddit.com/r/ycombinator/comments/1no3aqq/winter_26_megathread/",
+          "displayedUrl": "Reddit › r/ycombinator",
+          "description": "The Winter 2026 batch will take place from January to March in San Francisco. People who apply before the deadline will hear back by December 10 ...Read more",
+          "emphasizedKeywords": [
+            "batch"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "commentsAmount": "1.7K+ comments",
+          "lastUpdated": "5 months ago",
+          "type": "organic",
+          "position": 6
+        },
+        {
+          "title": "Meet The New Y-Combinator Startups Poised To Change ...",
+          "url": "https://www.forbes.com/sites/dariashunina/2026/03/16/21-most-promising-startups-from-y-combinators-latest-batch/",
+          "displayedUrl": "https://www.forbes.com › Innovation › Venture Capital",
+          "description": "The startups emerging from this Winter 2026 batch (W26) reflect that shift across multiple industries. Some are building the tools that allow AI ...Read more",
+          "date": "2026-03-16T07:18:27.351Z",
+          "emphasizedKeywords": [
+            "batch",
+            "W26",
+            "AI"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 7
+        },
+        {
+          "title": "Y Combinator Startups 2026",
+          "url": "https://www.ycombinator.com/companies/industry/collaboration",
+          "displayedUrl": "https://www.ycombinator.com › industry › collaboration",
+          "description": "Ventura (YC W26) is building the AI teammate for industrial distributors, starting with quoting. We're live with customers in the building materials supply ...Read more",
+          "emphasizedKeywords": [
+            "W26",
+            "AI"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 8
+        },
+        {
+          "title": "Y Combinator W26: The Full Batch - by Ollie Forsyth",
+          "url": "https://www.neweconomies.co/p/yc-w26-batch",
+          "displayedUrl": "https://www.neweconomies.co › yc-w26-batch",
+          "description": "Build powerful AI automations for your most complex workflows. Get an AI CRM that grows with your business from day one. Companies like Granola, ...Read more",
+          "date": "2026-03-05T12:00:00.000Z",
+          "emphasizedKeywords": [
+            "Get an AI CRM that grows with your business from day one"
+          ],
+          "siteLinks": [],
+          "productInfo": {},
+          "type": "organic",
+          "position": 9
+        }
+      ],
+      "suggestedResults": [],
+      "peopleAlsoAsk": [],
+      "customData": null,
+      "htmlSnapshotUrl": "https://api.apify.com/v2/key-value-stores/CLNmWspL4ysKKnn4v/records/UFcadWbsTAX1Fxy-0.html?signature=gx0eRnWW1QivOWRutE6o"
+    }
+  ]
+}
