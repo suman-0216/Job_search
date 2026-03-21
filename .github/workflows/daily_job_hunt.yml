@@ -2,8 +2,9 @@ name: Daily Job Hunt
 
 on:
   schedule:
-    # Runs at 14:00 UTC, which is 6:00 AM PST (or 7:00 AM PDT)
-    - cron: '0 14 * * *'
+    - cron: '30 14 * * *' # 6:30 AM PST
+    - cron: '30 17 * * *' # 9:30 AM PST
+    - cron: '0 20 * * *'  # 12:00 PM PST
   workflow_dispatch: # Allows manual triggering from the GitHub UI
 
 jobs:

@@ -1,71 +1,78 @@
 import { useEffect, useState } from 'react'
-import { XMarkIcon } from '@heroicons/react/24/solid'
+import { XMarkIcon, CheckIcon } from '@heroicons/react/24/solid'
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline'
+import { generateOutreach, generateFundedOutreach, generateStealthOutreach, OutreachResult, Job } from '../lib/outreach'
 
 interface JobDetailPanelProps {
-  job: Record<string, unknown> | null
+  job: Job | null
   onClose: () => void
 }
 
-const readText = (value: unknown, fallback = ''): string => {
-  if (typeof value !== 'string') return fallback
-  const trimmed = value.trim()
-  return trimmed || fallback
-}
-
-const readList = (value: unknown): string[] => {
-  if (Array.isArray(value)) {
-    return value.map((item) => String(item).trim()).filter(Boolean)
-  }
-  if (typeof value === 'string' && value.trim()) {
-    return value
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean)
-  }
-  return []
+const timeAgo = (dateStr?: string): string => {
+  if (!dateStr) return 'Unknown';
+  if (dateStr.toLowerCase().includes('ago')) return dateStr;
+  const timestamp = Date.parse(dateStr);
+  if (Number.isNaN(timestamp)) return dateStr;
+  const hours = Math.floor((Date.now() - timestamp) / (1000 * 60 * 60));
+  if (hours < 1) return 'Just now';
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }
 
 export default function JobDetailPanel({ job, onClose }: JobDetailPanelProps) {
-  const [copied, setCopied] = useState<'email' | 'dm' | ''>('')
+  const [activeTab, setActiveTab] = useState<'description' | 'outreach'>('description');
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [outreachContent, setOutreachContent] = useState<OutreachResult | { singleMessage: string } | null>(null);
 
   useEffect(() => {
-    if (!job) return
+    if (!job) return;
+
+    // Generate outreach content when the job changes
+    const sourceType = job.sourceType as string;
+    if (sourceType === 'funded') {
+        setOutreachContent({ singleMessage: generateFundedOutreach(job) });
+    } else if (sourceType === 'stealth') {
+        setOutreachContent({ singleMessage: generateStealthOutreach(job) });
+    } else {
+        setOutreachContent(generateOutreach(job));
+    }
+    
+    // Reset to description tab for new jobs
+    setActiveTab('description');
 
     const onEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-
-    document.body.style.overflow = 'hidden'
-    window.addEventListener('keydown', onEsc)
+      if (event.key === 'Escape') onClose();
+    };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onEsc);
 
     return () => {
-      document.body.style.overflow = ''
-      window.removeEventListener('keydown', onEsc)
-    }
-  }, [job, onClose])
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onEsc);
+    };
+  }, [job]);
 
-  if (!job) return null
+  if (!job) return null;
 
-  const title = readText(job.title) || readText(job.role) || 'Untitled role'
-  const company = readText(job.companyName) || readText(job.company) || 'Unknown company'
-  const location = readText(job.location) || 'Location not listed'
-  const salary = readText(job.salary) || 'Compensation not listed'
-  const description = readText(job.description, 'No detailed description available for this role yet.')
-  const link = readText(job.link)
-  const applicants = readText(job.applicantsCount) || readText(job.applicants) || 'N/A'
-  const posted = readText(job.postedAt) || readText(job.timestamp) || readText(job.date) || readText(job.posted) || 'Unknown'
-  const skills = readList(job.skills)
+  const handleCopy = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
 
-  const coldEmail = `Subject: Interest in ${title} at ${company}\n\nHi hiring team,\n\nI came across the ${title} role at ${company} and would love to contribute. I focus on shipping pragmatic ML products and can help move quickly from prototype to customer value.\n\nIf useful, I can share a focused 30-60-90 day plan for this role.\n\nBest,\n[Your Name]`
+  const title = job.title || 'Untitled Role';
+  const company = job.company || 'Unknown Company';
+  const location = job.location || 'N/A';
+  const salary = job.salary || 'N/A';
+  const description = job.description || 'No description available.';
+  const link = job.link || '#';
+  const applicants = job.applicants || 0;
+  const postedAt = job.postedAt || '';
+  const score = job.score || 'N/A';
+  const remote = job.remote ? 'Remote OK' : 'On-site';
 
-  const linkedInDm = `Hi, I saw the ${title} role at ${company}. I build practical ML products and would love to discuss how I can help your team. Open to a quick chat?`
-
-  const copyText = async (value: string, type: 'email' | 'dm') => {
-    await navigator.clipboard.writeText(value)
-    setCopied(type)
-    window.setTimeout(() => setCopied(''), 1200)
-  }
+  const whyThisRole = `${applicants} applicants · Posted ${timeAgo(postedAt)} · Score ${score}/10 · ${remote}`;
 
   return (
     <div className="fixed inset-0 z-50">
@@ -75,89 +82,85 @@ export default function JobDetailPanel({ job, onClose }: JobDetailPanelProps) {
         className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
         onClick={onClose}
       />
-
       <aside className="detail-sheet animate-slide-in absolute right-0 top-0 h-full w-full max-w-[760px]">
         <div className="detail-header">
           <div>
-            <p className="metric-label">Role detail</p>
-            <h2 className="mt-1 text-[38px] leading-[1.02] font-semibold tracking-tight">{title}</h2>
-            <p className="mt-2 text-base text-[var(--apple-text-muted)]">
-              {company} | {location}
-            </p>
+            <h2 className="text-[38px] leading-[1.02] font-semibold tracking-tight">{title}</h2>
+            <p className="mt-2 text-base text-[var(--apple-text-muted)]">{company} | {location}</p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="ghost-icon"
-            aria-label="Close"
-          >
+          <button type="button" onClick={onClose} className="ghost-icon" aria-label="Close">
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="detail-body">
-          <section className="detail-meta-grid">
-            <div className="detail-meta">
-              <p className="metric-label">Salary</p>
-              <p className="mt-1 text-base font-semibold">{salary}</p>
-            </div>
-            <div className="detail-meta">
-              <p className="metric-label">Applicants</p>
-              <p className="mt-1 text-base font-semibold">{applicants}</p>
-            </div>
-            <div className="detail-meta">
-              <p className="metric-label">Posted</p>
-              <p className="mt-1 text-base font-semibold">{posted}</p>
-            </div>
-            <div className="detail-meta">
-              <p className="metric-label">Skills</p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {skills.length > 0
-                  ? skills.slice(0, 5).map((skill) => (
-                      <span key={skill} className="skill-chip">
-                        {skill}
-                      </span>
-                    ))
-                  : <span className="skill-chip">Generalist</span>}
-              </div>
-            </div>
-          </section>
-
-          <section className="detail-section">
-            <p className="metric-label">Description</p>
-            <p className="mt-3 whitespace-pre-wrap text-[15px] leading-7 text-[var(--apple-text)]">{description}</p>
-          </section>
-
-          <section className="detail-section">
-            <div className="flex items-center justify-between gap-2">
-              <p className="metric-label">Cold email</p>
-              <button type="button" className="ghost-btn" onClick={() => copyText(coldEmail, 'email')}>
-                {copied === 'email' ? 'Copied' : 'Copy'}
-              </button>
-            </div>
-            <pre className="template-block">{coldEmail}</pre>
-          </section>
-
-          <section className="detail-section">
-            <div className="flex items-center justify-between gap-2">
-              <p className="metric-label">LinkedIn DM</p>
-              <button type="button" className="ghost-btn" onClick={() => copyText(linkedInDm, 'dm')}>
-                {copied === 'dm' ? 'Copied' : 'Copy'}
-              </button>
-            </div>
-            <pre className="template-block">{linkedInDm}</pre>
-          </section>
+        <div className="px-8 border-b border-[var(--apple-border)]">
+          <div className="flex items-center gap-4 -mb-px">
+            <button className={`detail-tab ${activeTab === 'description' ? 'active' : ''}`} onClick={() => setActiveTab('description')}>Description</button>
+            <button className={`detail-tab ${activeTab === 'outreach' ? 'active' : ''}`} onClick={() => setActiveTab('outreach')}>Outreach</button>
+          </div>
         </div>
-
-        <div className="detail-footer">
-          {link ? (
-            <a href={link} target="_blank" rel="noreferrer" className="action-pill">
-              <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-              Open posting
-            </a>
-          ) : (
-            <span className="text-sm text-[var(--apple-text-muted)]">Posting link not available</span>
+        
+        <div className="detail-body">
+          {activeTab === 'description' && (
+            <>
+              <section className="detail-meta-grid">
+                <div className="detail-meta"><p className="metric-label">Salary</p><p className="mt-1 text-base font-semibold">{salary}</p></div>
+                <div className="detail-meta"><p className="metric-label">Applicants</p><p className="mt-1 text-base font-semibold">{applicants}</p></div>
+                <div className="detail-meta"><p className="metric-label">Posted</p><p className="mt-1 text-base font-semibold">{timeAgo(postedAt)}</p></div>
+                <div className="detail-meta"><p className="metric-label">Location</p><p className="mt-1 text-base font-semibold">{remote}</p></div>
+              </section>
+              <section className="detail-section">
+                <p className="metric-label">Description</p>
+                <p className="mt-3 whitespace-pre-wrap text-[15px] leading-7 text-[var(--apple-text)]">{description}</p>
+              </section>
+            </>
           )}
+
+          {activeTab === 'outreach' && outreachContent && (
+            <section className="detail-section">
+              <div className="p-3 mb-4 rounded-lg bg-[var(--apple-button-hover)] border border-[var(--apple-border)]">
+                  <p className="metric-label">Why this role?</p>
+                  <p className="text-sm text-[var(--apple-text-muted)] mt-1">{whyThisRole}</p>
+              </div>
+
+              {'singleMessage' in outreachContent ? (
+                  <div className="detail-section">
+                    <div className="flex items-center justify-between gap-2"><p className="metric-label">Personalized Outreach</p><button type="button" className="ghost-btn" onClick={() => handleCopy(outreachContent.singleMessage, 'single')}>{copiedKey === 'single' ? 'Copied' : 'Copy'}</button></div>
+                    <pre className="template-block">{outreachContent.singleMessage}</pre>
+                  </div>
+              ) : (
+                <>
+                  <div className="mb-4">
+                    <p className="metric-label">Matched Skills</p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                        {outreachContent.matchedSkills.length > 0 ? outreachContent.matchedSkills.map(skill => (
+                            <span key={skill} className="skill-chip"><CheckIcon className="h-3 w-3 mr-1" /> {skill}</span>
+                        )) : <span className="skill-chip">No direct skill matches found</span>}
+                    </div>
+                  </div>
+
+                  <div className="detail-section">
+                    <div className="flex items-center justify-between gap-2"><p className="metric-label">Cold Email</p><button type="button" className="ghost-btn" onClick={() => handleCopy(outreachContent.email.body, 'email')}>{copiedKey === 'email' ? 'Copied' : 'Copy'}</button></div>
+                    <pre className="template-block"><span className="text-[var(--apple-text-muted)]">Subject: {outreachContent.email.subject}</span>{`\n\n${outreachContent.email.body}`}</pre>
+                  </div>
+                  <div className="detail-section">
+                    <div className="flex items-center justify-between gap-2"><p className="metric-label">LinkedIn DM</p><button type="button" className="ghost-btn" onClick={() => handleCopy(outreachContent.linkedin, 'linkedin')}>{copiedKey === 'linkedin' ? 'Copied' : 'Copy'}</button></div>
+                    <pre className="template-block">{outreachContent.linkedin}</pre>
+                  </div>
+                  <div className="detail-section">
+                    <div className="flex items-center justify-between gap-2"><p className="metric-label">Twitter/X DM</p><button type="button" className="ghost-btn" onClick={() => handleCopy(outreachContent.twitter, 'twitter')}>{copiedKey === 'twitter' ? 'Copied' : 'Copy'}</button></div>
+                    <pre className="template-block">{outreachContent.twitter}</pre>
+                  </div>
+                </>
+              )}
+            </section>
+          )}
+        </div>
+        
+        <div className="detail-footer">
+          <a href={link} target="_blank" rel="noreferrer" className="action-pill">
+            <ArrowTopRightOnSquareIcon className="h-4 w-4" /> Open posting
+          </a>
         </div>
       </aside>
     </div>
