@@ -14,6 +14,8 @@ on:
 jobs:
   scrape-and-commit:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -24,15 +26,23 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Fetch jobs data
         env:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          APIFY_DATASET_LIMIT: "500"
+          APIFY_TIMEOUT_SECS: "480"
+          APIFY_POLL_INTERVAL_MS: "4000"
+          GOOGLE_ENRICH_LIMIT: "120"
+          SKILL_DELAY_MS: "120"
         run: npm run fetch
 
       - name: Clean up old data (older than 5 days)
+        env:
+          LATEST_JOBS_TIME: ${{ vars.LATEST_JOBS_TIME || '5' }}
+          APPLIED_JOBS_TIME: ${{ vars.APPLIED_JOBS_TIME || '30' }}
         run: npm run clean
 
       - name: Commit and push updated data
