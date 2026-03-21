@@ -47,24 +47,17 @@ const TARGET_ROLES = [
 
 const LOCATION_TARGETS = ['united states', 'california', 'san francisco bay area', 'san francisco']
 
-const LINKEDIN_SEARCH_URLS = [
-  // United States
-  'https://www.linkedin.com/jobs/search/?keywords=Founding%20Engineer%20AI%20ML&f_E=1%2C2&f_TPR=r86400&location=United%20States',
-  'https://www.linkedin.com/jobs/search/?keywords=AI%20Engineer&f_E=1%2C2&f_TPR=r86400&location=United%20States',
-  'https://www.linkedin.com/jobs/search/?keywords=Software%20Engineer%20AI&f_E=1%2C2&f_TPR=r86400&location=United%20States',
-  'https://www.linkedin.com/jobs/search/?keywords=Machine%20Learning%20Engineer&f_E=1%2C2&f_TPR=r86400&location=United%20States',
-
-  // California
-  'https://www.linkedin.com/jobs/search/?keywords=Founding%20Engineer&f_E=1%2C2&f_TPR=r86400&location=California%2C%20United%20States',
-  'https://www.linkedin.com/jobs/search/?keywords=AI%20Engineer%20startup&f_E=1%2C2&f_TPR=r86400&location=California%2C%20United%20States',
-  'https://www.linkedin.com/jobs/search/?keywords=Machine%20Learning%20Engineer&f_E=1%2C2&f_TPR=r86400&location=California%2C%20United%20States',
-
-  // San Francisco Bay Area
-  'https://www.linkedin.com/jobs/search/?keywords=Founding%20AI%20Engineer&f_E=1%2C2&f_TPR=r86400&geoId=102752184',
-  'https://www.linkedin.com/jobs/search/?keywords=AI%20Engineer%20startup&f_E=1%2C2&f_TPR=r86400&geoId=102752184',
-  'https://www.linkedin.com/jobs/search/?keywords=Software%20Engineer%20AI&f_E=1%2C2&f_TPR=r86400&geoId=102752184',
-  'https://www.linkedin.com/jobs/search/?keywords=Machine%20Learning%20Engineer&f_E=1%2C2&f_TPR=r86400&geoId=102752184',
-]
+const LINKEDIN_SEARCH_URLS = TARGET_ROLES.flatMap(role =>
+  LOCATION_TARGETS.map(location => {
+    const keywords = encodeURIComponent(role);
+    const locationKeywords = encodeURIComponent(location);
+    if (location.includes('san francisco')) {
+        // Use Geo ID for SF Bay Area for precision
+        return `https://www.linkedin.com/jobs/search/?keywords=${keywords}&f_E=1,2&f_TPR=r86400&geoId=102752184&position=1&pageNum=0`;
+    }
+    return `https://www.linkedin.com/jobs/search/?keywords=${keywords}&location=${locationKeywords}&f_E=1,2&f_TPR=r86400&position=1&pageNum=0`;
+  })
+);
 
 const GOOGLE_JOB_QUERIES = [
   // USA broad
@@ -84,6 +77,7 @@ const GOOGLE_JOB_QUERIES = [
   'site:wellfound.com "founding engineer" "ai"',
   'site:jobs.lever.co "machine learning engineer" "San Francisco"',
   'site:boards.greenhouse.io "software engineer" "ai" "bay area"',
+  '("founding engineer" OR "ai engineer" OR "software engineer ai" OR "machine learning engineer") site:jobs.a16z.com',
 ]
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
