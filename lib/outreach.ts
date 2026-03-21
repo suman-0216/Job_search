@@ -1,26 +1,8 @@
 // lib/outreach.ts
+import { MY_PROFILE } from './candidate';
+import { AugmentedJob } from './scorer';
 
-// Define the shape of the job data we expect to receive.
-export interface Job {
-  title?: string;
-  company?: string;
-  description?: string;
-  skills?: string[];
-  salary?: string;
-  link?: string;
-  // For funded/stealth startups which have a different shape
-  company_name?: string;
-  funding_amount?: string;
-  round_type?: string;
-  article_url?: string;
-  // Allow any other properties
-  [key: string]: any;
-}
-
-// The output structure of our main generation function.
 export interface OutreachResult {
-  matchedSkills: string[];
-  companyMission: string;
   email: {
     subject: string;
     body: string;
@@ -29,143 +11,97 @@ export interface OutreachResult {
   twitter: string;
 }
 
-// Your professional profile to match against.
-const CANDIDATE_PROFILE = {
-  stack: ['Python', 'PyTorch', 'LLMs', 'RAG', 'FastAPI', 'Docker', 'Vector DBs', 'Kubernetes', 'AWS', 'Transformers', 'LangChain', 'OpenAI', 'Anthropic'],
-  role: 'Founding Engineer / AI-ML Engineer',
-};
-
 /**
- * Extracts the core company mission from the first few sentences of a job description.
- * @param description - The full job description text.
- * @returns A single sentence summarizing the company's mission.
+ * Extracts the company mission from the first two sentences of a job description 
+ * that contain specific keywords.
  */
-export function extractCompanyMission(description: string = ''): string {
-  if (!description) {
-    return 'Their mission to innovate in the AI/ML space is exciting.';
-  }
+function extractMissionHook(description: string = ''): string {
+  if (!description) return 'Building the future of AI is a mission I truly resonate with.';
 
-  // Sanitize the text by removing HTML tags and normalizing whitespace.
   const sanitized = description.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-  
-  // Look for sentences containing mission-related keywords.
   const sentences = sanitized.match(/[^.!?]+[.!?]+/g) || [sanitized];
-  const missionKeywords = /we are building|our mission is|we help|a platform for|to revolutionize|solving the problem/i;
+  const missionKeywords = /\b(we|our|building|platform|mission|help)\b/i;
   
-  for (const sentence of sentences.slice(0, 5)) { // Check first 5 sentences
-    if (missionKeywords.test(sentence)) {
-      return sentence.trim();
-    }
-  }
+  const relevantSentences = sentences
+    .filter(s => missionKeywords.test(s))
+    .slice(0, 2)
+    .join(' ')
+    .trim();
 
-  // Fallback to the first sentence if no keywords are found.
-  return sentences[0]?.trim() || 'Their mission to innovate in the AI/ML space is exciting.';
+  return relevantSentences || 'Your mission to innovate in the AI space is exactly the problem area I want to work in.';
 }
 
 /**
- * Matches skills from the job data against the candidate's profile stack.
- * @param skills - An array of skills from the job object.
- * @param description - The full job description text (as a fallback).
- * @returns An array of matched skill names.
+ * Generates personalized outreach content based on a scored job and the candidate's profile.
  */
-export function matchSkills(skills: string[] = [], description: string = ''): string[] {
-  const matched = new Set<string>();
-  const lowercasedStack = CANDIDATE_PROFILE.stack.map(s => s.toLowerCase());
-  
-  // First, check the provided skills array.
-  if (skills.length > 0) {
-    for (const jobSkill of skills) {
-      for (const candidateSkill of CANDIDATE_PROFILE.stack) {
-        if (new RegExp(`\\b${candidateSkill}\\b`, 'i').test(jobSkill)) {
-          matched.add(candidateSkill);
-        }
-      }
-    }
-  }
-
-  // If no skills were matched, fall back to searching the entire description.
-  if (matched.size === 0 && description) {
-    const lowerDesc = description.toLowerCase();
-    for (const candidateSkill of CANDIDATE_PROFILE.stack) {
-      if (lowerDesc.includes(candidateSkill.toLowerCase())) {
-        matched.add(candidateSkill);
-      }
-    }
-  }
-  
-  return Array.from(matched);
-}
-
-
-/**
- * The main function to generate all personalized outreach content for a given job.
- * @param job - The job data object.
- * @returns An object containing matched skills, mission, and three message templates.
- */
-export function generateOutreach(job: Job): OutreachResult {
-  const companyName = job.company || job.company_name || '[Company Name]';
-  const jobTitle = job.title || CANDIDATE_PROFILE.role;
-  const description = job.description || '';
-
-  const matchedSkills = matchSkills(job.skills, description);
-  const companyMission = extractCompanyMission(description);
+export function generateOutreach(job: AugmentedJob, profile: typeof MY_PROFILE): OutreachResult {
+  const company = job.company || job.companyName || '[Company]';
+  const missionHook = extractMissionHook(job.description);
+  const bestProject = job.best_project;
+  const topMatchedSkills = job.matched_skills.slice(0, 3).join(', ');
+  const applicantsCount = typeof job.applicants === 'number' ? job.applicants : parseInt(String(job.applicants).match(/\d+/)?.[0] || '0');
 
   // --- COLD EMAIL ---
-  const emailSubject = `Early eng for ${companyName} — [Your Name]`;
+  const emailSubject = `Early eng for ${company} — ${profile.name}`;
   let emailBody = `Hi there,\n\n`;
-  emailBody += `${companyMission}\n\n`;
-  emailBody += `I'm an AI/ML engineer with hands-on experience in ${matchedSkills.slice(0, 3).join(', ') || 'key areas like Python, PyTorch, and LLMs'}.\n`;
-  emailBody += `Here's something I built that's directly relevant:\n[Your GitHub link] — [one line description placeholder].\n\n`;
+  emailBody += `${missionHook} This is exactly the problem space I want to work on.\n\n`;
+  emailBody += `I'm Suman — a ${profile.title} with 2 years of experience building production systems end-to-end. Most relevant to this role:\n\n`;
+  emailBody += `→ ${bestProject.name}: ${bestProject.hook}\n${bestProject.url}\n\n`;
+  emailBody += `Tech match: ${topMatchedSkills}\n\n`;
 
-  if (job.salary && (job.salary.includes('150k') || job.salary.includes('150,000'))) {
-    emailBody += `The role aligns well with what I'm looking for.\n\n`;
+  if (applicantsCount > 0 && applicantsCount < 100) {
+    emailBody += `With only ${applicantsCount} applicants, I'd love to move fast — happy to start with a trial project or async task.\n\n`;
+  } else {
+    emailBody += `Open to a trial project or contract-first to show what I can do.\n\n`;
   }
-  
-  emailBody += `Open to a trial project or contract-first to start — happy to show what I can do before any commitment.\n\n`;
-  emailBody += `Worth a 15-min call?\n[Your Name]`;
+
+  const salary = (job.salary || '').toLowerCase();
+  if (salary.includes('150000') || salary.includes('200') || salary.includes('250')) {
+    emailBody += `The comp range aligns well with what I'm looking for.\n\n`;
+  }
+
+  emailBody += `Worth a 15-min call?\n${profile.name}\n${profile.portfolio} | ${profile.github} | ${profile.linkedin}`;
 
   // --- LINKEDIN DM ---
-  const linkedinBody = `[CEO name] — saw the ${jobTitle} role. ${companyMission.substring(0, 100).trim()}... I'm an AI/ML eng with ${matchedSkills.slice(0, 2).join(' & ')}. Built [placeholder]. Open to a trial project?`;
+  const linkedinBody = `Hi ${company} — ${missionHook.substring(0, 80)}... I'm Suman, Founding AI eng — built ${bestProject.name} (${job.matched_skills[0]}). ${applicantsCount > 0 ? `${applicantsCount} applicants, ` : ''}happy to move fast. Trial project? ${profile.portfolio}`;
 
   // --- TWITTER/X DM ---
-  const twitterBody = `Hey ${companyName} team — ${companyMission.substring(0, 80).trim()}... AI/ML eng here, ${matchedSkills[0] || 'Python/PyTorch'}. Built [placeholder]. Worth a chat?`;
-  
+  const twitterBody = `Hey ${company} team — ${missionHook.substring(0, 70)}... AI/ML eng here, ${job.matched_skills[0] || 'Python/PyTorch'}. Built ${bestProject.name}. Worth a chat? ${profile.portfolio}`;
+
   return {
-    matchedSkills,
-    companyMission,
     email: {
       subject: emailSubject,
       body: emailBody,
     },
-    linkedin: linkedinBody.substring(0, 299), // Ensure it's under the limit
-    twitter: twitterBody.substring(0, 239), // Ensure it's under the limit
+    linkedin: linkedinBody.substring(0, 299),
+    twitter: twitterBody.substring(0, 239),
   };
 }
 
 /**
- * Generates outreach for a recently funded startup.
- * @param startup - The funded startup data object.
- * @returns A single, combined outreach message.
+ * Generates outreach for funded startup leads.
  */
-export function generateFundedOutreach(startup: Job): string {
-    const companyName = startup.company_name || '[Company Name]';
-    const funding = startup.funding_amount || 'recent';
-    const round = startup.round_type || 'funding';
-    const mission = extractCompanyMission(startup.description);
-    const skills = CANDIDATE_PROFILE.stack.slice(0, 3).join(', ');
+export function generateFundedOutreach(job: any, profile: typeof MY_PROFILE): string {
+  const company = job.company_name || '[Company]';
+  const funding = job.funding_amount || 'recent';
+  const round = job.round_type || 'funding';
+  const description = job.description || job.article_description || '';
+  const missionHook = extractMissionHook(description);
+  
+  // Find a relevant project hook for the domain if possible
+  const project = profile.projects[0]; // fallback to first
 
-    return `Congrats on the ${funding} ${round} — ${mission} I'm an AI/ML engineer with experience in ${skills}. Built [X]. Open to a trial project to help you scale?`;
+  return `Congrats on the ${funding} ${round}!\n${missionHook}\nI'm Suman — I've built ${project.hook.split(',')[0]}.\nOpen to a trial project or contract-first to help you move faster.\n${profile.portfolio} | ${profile.github}`;
 }
 
 /**
- * Generates outreach for a stealth startup.
- * @param startup - The stealth startup data object.
- * @returns A single, combined outreach message.
+ * Generates outreach for stealth startup leads.
  */
-export function generateStealthOutreach(startup: Job): string {
-    const companyName = startup.company || startup.name || '[Company Name]';
-    const source = startup.sourceType || 'my network'; // e.g., 'YC', 'Hacker News'
-    const skills = CANDIDATE_PROFILE.stack.slice(0, 2).join(' & ');
+export function generateStealthOutreach(job: any, profile: typeof MY_PROFILE): string {
+  const company = job.company || job.name || '[Stealth Startup]';
+  const source = job.source || 'my network';
+  const domain = job.domain || 'AI';
+  const project = profile.projects[0]; // fallback
 
-    return `I came across ${companyName} through ${source}. Building in the AI domain is exactly where I want to be. I'm an AI/ML engineer with experience in ${skills}. Open to a confidential chat? Happy to sign an NDA.`;
+  return `Hi — I came across ${company} through ${source}.\nBuilding in ${domain} is exactly where I want to be.\nI'm Suman — I recently built ${project.name} (${profile.metrics.executionAccuracy}).\nHappy to keep this confidential and sign an NDA if needed.\n${profile.portfolio}`;
 }

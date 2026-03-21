@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { XMarkIcon, CheckIcon } from '@heroicons/react/24/solid'
+import { XMarkIcon, CheckIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid'
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline'
-import { generateOutreach, generateFundedOutreach, generateStealthOutreach, OutreachResult, Job } from '../lib/outreach'
+import { MY_PROFILE } from '../lib/candidate'
+import { scoreJob, AugmentedJob } from '../lib/scorer'
+import { generateOutreach, OutreachResult } from '../lib/outreach'
 
 interface JobDetailPanelProps {
-  job: Job | null
+  job: Record<string, any> | null
   onClose: () => void
 }
 
@@ -20,26 +22,28 @@ const timeAgo = (dateStr?: string): string => {
   return `${days}d ago`;
 }
 
-export default function JobDetailPanel({ job, onClose }: JobDetailPanelProps) {
+export default function JobDetailPanel({ job: rawJob, onClose }: JobDetailPanelProps) {
   const [activeTab, setActiveTab] = useState<'description' | 'outreach'>('description');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [outreachContent, setOutreachContent] = useState<OutreachResult | { singleMessage: string } | null>(null);
+  const [scoredJob, setScoredJob] = useState<AugmentedJob | null>(null);
+  const [outreach, setOutreach] = useState<OutreachResult | null>(null);
 
   useEffect(() => {
-    if (!job) return;
+    if (!rawJob) return;
 
-    // Generate outreach content when the job changes
-    const sourceType = job.sourceType as string;
-    if (sourceType === 'funded') {
-        setOutreachContent({ singleMessage: generateFundedOutreach(job) });
-    } else if (sourceType === 'stealth') {
-        setOutreachContent({ singleMessage: generateStealthOutreach(job) });
-    } else {
-        setOutreachContent(generateOutreach(job));
-    }
+    // Score the job and generate outreach content
+    const scored = scoreJob(rawJob, MY_PROFILE);
+    const generatedOutreach = generateOutreach(scored, MY_PROFILE);
     
-    // Reset to description tab for new jobs
-    setActiveTab('description');
+    setScoredJob(scored);
+    setOutreach(generatedOutreach);
+    
+    // Default to the outreach tab for funded and stealth startups
+    if (scored.sourceType === 'funded' || scored.sourceType === 'stealth') {
+        setActiveTab('outreach');
+    } else {
+        setActiveTab('description');
+    }
 
     const onEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -51,9 +55,9 @@ export default function JobDetailPanel({ job, onClose }: JobDetailPanelProps) {
       document.body.style.overflow = '';
       window.removeEventListener('keydown', onEsc);
     };
-  }, [job]);
+  }, [rawJob]);
 
-  if (!job) return null;
+  if (!rawJob || !scoredJob || !outreach) return null;
 
   const handleCopy = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
@@ -61,105 +65,121 @@ export default function JobDetailPanel({ job, onClose }: JobDetailPanelProps) {
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
-  const title = job.title || 'Untitled Role';
-  const company = job.company || 'Unknown Company';
-  const location = job.location || 'N/A';
-  const salary = job.salary || 'N/A';
-  const description = job.description || 'No description available.';
-  const link = job.link || '#';
-  const applicants = job.applicants || 0;
-  const postedAt = job.postedAt || '';
-  const score = job.score || 'N/A';
-  const remote = job.remote ? 'Remote OK' : 'On-site';
-
-  const whyThisRole = `${applicants} applicants · Posted ${timeAgo(postedAt)} · Score ${score}/10 · ${remote}`;
+  const getWhyApplySummary = (job: AugmentedJob) => {
+    const skills = job.matched_skills.slice(0, 2).join(' + ');
+    const competition = job.applicants ? `Low competition (${job.applicants} apps).` : '';
+    const isFounding = job.title?.toLowerCase().includes('founding') ? 'Founding role.' : '';
+    
+    switch (job.variant) {
+      case 'A': return `Strong match — your [Healthcare AI] focus and ${skills} experience directly maps to their mission. ${competition} ${isFounding}`;
+      case 'B': return `Strong match — your [Backend/Infra] expertise and ${skills} experience is a direct hit for their stack. ${competition} ${isFounding}`;
+      case 'C': return `Excellent match — your [Agentic AI] work and ${skills} skills align with their decision-making focus. ${competition} ${isFounding}`;
+      case 'D': return `Niche match — your [On-Device/Edge] ML work and ${skills} expertise is exactly what they need for privacy-first AI. ${competition} ${isFounding}`;
+      default: return `Good match — your ${skills} experience is highly relevant to their core requirements. ${competition} ${isFounding}`;
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50">
-      <button
-        type="button"
-        aria-label="Close details panel"
-        className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
-        onClick={onClose}
-      />
-      <aside className="detail-sheet animate-slide-in absolute right-0 top-0 h-full w-full max-w-[760px]">
-        <div className="detail-header">
-          <div>
-            <h2 className="text-[38px] leading-[1.02] font-semibold tracking-tight">{title}</h2>
-            <p className="mt-2 text-base text-[var(--apple-text-muted)]">{company} | {location}</p>
+      <button type="button" className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" onClick={onClose} />
+      <aside className="detail-sheet animate-slide-in absolute right-0 top-0 h-full w-full max-w-[760px] bg-[var(--apple-nav)]">
+        <div className="detail-header px-8 pt-8 pb-4">
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="text-[38px] leading-[1.02] font-semibold tracking-tight">{scoredJob.title}</h2>
+              <p className="mt-2 text-base text-[var(--apple-text-muted)]">{scoredJob.company || scoredJob.companyName} | {scoredJob.location}</p>
+            </div>
+            <button type="button" onClick={onClose} className="ghost-icon p-2" aria-label="Close">
+              <XMarkIcon className="h-6 w-6" />
+            </button>
           </div>
-          <button type="button" onClick={onClose} className="ghost-icon" aria-label="Close">
-            <XMarkIcon className="h-5 w-5" />
-          </button>
+        </div>
+
+        {/* --- MATCH SCORE CARD --- */}
+        <div className="mx-8 mb-6 p-6 rounded-2xl bg-[var(--apple-button-hover)] border border-[var(--apple-border)]">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold">Match Score: <span className="text-blue-500">{scoredJob.score}/10</span></h3>
+            <span className="text-sm font-medium text-[var(--apple-text-muted)] uppercase tracking-widest">{scoredJob.variant} Variant</span>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <p className="metric-label mb-2">✅ Matched Skills</p>
+              <div className="flex flex-wrap gap-1.5">
+                {scoredJob.matched_skills.slice(0, 6).map(skill => (
+                  <span key={skill} className="skill-chip text-[11px]"><CheckIcon className="h-3 w-3 mr-1" /> {skill}</span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="metric-label mb-2">⚠️ Missing Skills</p>
+              <div className="flex flex-wrap gap-1.5">
+                {scoredJob.missing_skills.length > 0 ? scoredJob.missing_skills.slice(0, 4).map(skill => (
+                  <span key={skill} className="skill-chip text-[11px] border-orange-500/30"><ExclamationTriangleIcon className="h-3 w-3 mr-1 text-orange-400" /> {skill}</span>
+                )) : <span className="text-xs text-[var(--apple-text-muted)] italic">None major</span>}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[var(--apple-border)] pt-4">
+            <div className="flex items-center gap-2"><span className="text-sm font-semibold">⭐ Best Project:</span> <span className="text-sm text-blue-400">{scoredJob.best_project.name}</span></div>
+            <div className="text-sm text-[var(--apple-text-muted)]">📊 {scoredJob.applicants || 'N/A'} applicants · {timeAgo(scoredJob.postedAt)} · {scoredJob.workRemoteAllowed ? 'Remote OK' : 'On-site'} · {scoredJob.salary || 'Salary N/A'}</div>
+          </div>
         </div>
 
         <div className="px-8 border-b border-[var(--apple-border)]">
-          <div className="flex items-center gap-4 -mb-px">
+          <div className="flex items-center gap-6 -mb-px">
             <button className={`detail-tab ${activeTab === 'description' ? 'active' : ''}`} onClick={() => setActiveTab('description')}>Description</button>
-            <button className={`detail-tab ${activeTab === 'outreach' ? 'active' : ''}`} onClick={() => setActiveTab('outreach')}>Outreach</button>
+            <button className={`detail-tab ${activeTab === 'outreach' ? 'active' : ''}`} onClick={() => setActiveTab('outreach')}>Outreach Messages</button>
           </div>
         </div>
         
-        <div className="detail-body">
+        <div className="detail-body px-8 py-6 h-[calc(100%-350px)] overflow-y-auto">
           {activeTab === 'description' && (
-            <>
-              <section className="detail-meta-grid">
-                <div className="detail-meta"><p className="metric-label">Salary</p><p className="mt-1 text-base font-semibold">{salary}</p></div>
-                <div className="detail-meta"><p className="metric-label">Applicants</p><p className="mt-1 text-base font-semibold">{applicants}</p></div>
-                <div className="detail-meta"><p className="metric-label">Posted</p><p className="mt-1 text-base font-semibold">{timeAgo(postedAt)}</p></div>
-                <div className="detail-meta"><p className="metric-label">Location</p><p className="mt-1 text-base font-semibold">{remote}</p></div>
-              </section>
-              <section className="detail-section">
-                <p className="metric-label">Description</p>
-                <p className="mt-3 whitespace-pre-wrap text-[15px] leading-7 text-[var(--apple-text)]">{description}</p>
-              </section>
-            </>
+            <section className="detail-section">
+              <p className="metric-label">Why Apply?</p>
+              <p className="mt-2 text-base font-medium text-blue-400/90 italic leading-relaxed">"{getWhyApplySummary(scoredJob)}"</p>
+              <hr className="my-6 border-[var(--apple-border)]" />
+              <p className="metric-label">Job Description</p>
+              <p className="mt-4 whitespace-pre-wrap text-[15px] leading-7 text-[var(--apple-text)]">{scoredJob.description}</p>
+            </section>
           )}
 
-          {activeTab === 'outreach' && outreachContent && (
-            <section className="detail-section">
-              <div className="p-3 mb-4 rounded-lg bg-[var(--apple-button-hover)] border border-[var(--apple-border)]">
-                  <p className="metric-label">Why this role?</p>
-                  <p className="text-sm text-[var(--apple-text-muted)] mt-1">{whyThisRole}</p>
+          {activeTab === 'outreach' && (
+            <section className="space-y-8 pb-12">
+              <div className="detail-section">
+                <div className="flex items-center justify-between gap-2 mb-3"><p className="metric-label">Cold Email</p><button type="button" className="ghost-btn" onClick={() => handleCopy(outreach.email.body, 'email')}>{copiedKey === 'email' ? 'Copied' : 'Copy'}</button></div>
+                <pre className="template-block p-4 bg-black/20 rounded-xl border border-[var(--apple-border)] whitespace-pre-wrap text-sm"><span className="text-[var(--apple-text-muted)] font-bold">Subject: {outreach.email.subject}</span>{`\n\n${outreach.email.body}`}</pre>
               </div>
 
-              {'singleMessage' in outreachContent ? (
-                  <div className="detail-section">
-                    <div className="flex items-center justify-between gap-2"><p className="metric-label">Personalized Outreach</p><button type="button" className="ghost-btn" onClick={() => handleCopy(outreachContent.singleMessage, 'single')}>{copiedKey === 'single' ? 'Copied' : 'Copy'}</button></div>
-                    <pre className="template-block">{outreachContent.singleMessage}</pre>
-                  </div>
-              ) : (
-                <>
-                  <div className="mb-4">
-                    <p className="metric-label">Matched Skills</p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                        {outreachContent.matchedSkills.length > 0 ? outreachContent.matchedSkills.map(skill => (
-                            <span key={skill} className="skill-chip"><CheckIcon className="h-3 w-3 mr-1" /> {skill}</span>
-                        )) : <span className="skill-chip">No direct skill matches found</span>}
+              <div className="detail-section">
+                <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2">
+                        <p className="metric-label">LinkedIn DM</p>
+                        <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">{outreach.linkedin.length} chars</span>
                     </div>
-                  </div>
+                    <button type="button" className="ghost-btn" onClick={() => handleCopy(outreach.linkedin, 'linkedin')}>{copiedKey === 'linkedin' ? 'Copied' : 'Copy'}</button>
+                </div>
+                <pre className="template-block p-4 bg-black/20 rounded-xl border border-[var(--apple-border)] whitespace-pre-wrap text-sm">{outreach.linkedin}</pre>
+              </div>
 
-                  <div className="detail-section">
-                    <div className="flex items-center justify-between gap-2"><p className="metric-label">Cold Email</p><button type="button" className="ghost-btn" onClick={() => handleCopy(outreachContent.email.body, 'email')}>{copiedKey === 'email' ? 'Copied' : 'Copy'}</button></div>
-                    <pre className="template-block"><span className="text-[var(--apple-text-muted)]">Subject: {outreachContent.email.subject}</span>{`\n\n${outreachContent.email.body}`}</pre>
-                  </div>
-                  <div className="detail-section">
-                    <div className="flex items-center justify-between gap-2"><p className="metric-label">LinkedIn DM</p><button type="button" className="ghost-btn" onClick={() => handleCopy(outreachContent.linkedin, 'linkedin')}>{copiedKey === 'linkedin' ? 'Copied' : 'Copy'}</button></div>
-                    <pre className="template-block">{outreachContent.linkedin}</pre>
-                  </div>
-                  <div className="detail-section">
-                    <div className="flex items-center justify-between gap-2"><p className="metric-label">Twitter/X DM</p><button type="button" className="ghost-btn" onClick={() => handleCopy(outreachContent.twitter, 'twitter')}>{copiedKey === 'twitter' ? 'Copied' : 'Copy'}</button></div>
-                    <pre className="template-block">{outreachContent.twitter}</pre>
-                  </div>
-                </>
-              )}
+              <div className="detail-section">
+                <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2">
+                        <p className="metric-label">Twitter/X DM</p>
+                        <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">{outreach.twitter.length} chars</span>
+                    </div>
+                    <button type="button" className="ghost-btn" onClick={() => handleCopy(outreach.twitter, 'twitter')}>{copiedKey === 'twitter' ? 'Copied' : 'Copy'}</button>
+                </div>
+                <pre className="template-block p-4 bg-black/20 rounded-xl border border-[var(--apple-border)] whitespace-pre-wrap text-sm">{outreach.twitter}</pre>
+              </div>
             </section>
           )}
         </div>
         
-        <div className="detail-footer">
-          <a href={link} target="_blank" rel="noreferrer" className="action-pill">
-            <ArrowTopRightOnSquareIcon className="h-4 w-4" /> Open posting
+        <div className="detail-footer p-8 border-t border-[var(--apple-border)] flex items-center gap-4">
+          <a href={scoredJob.link || '#'} target="_blank" rel="noreferrer" className="action-pill bg-blue-600 hover:bg-blue-500 text-white border-none px-6">
+            <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-2" /> Open Application
           </a>
         </div>
       </aside>

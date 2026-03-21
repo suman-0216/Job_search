@@ -650,6 +650,18 @@ export default function Dashboard() {
                       <button type="button" className="action-pill" onClick={() => setSelectedJob(job)}>
                         Details
                       </button>
+                      {(job.sourceType === 'funded' || job.sourceType === 'stealth') && (
+                        <button 
+                          type="button" 
+                          className="action-pill bg-blue-600/20 text-blue-400 border-blue-500/30" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedJob(job);
+                          }}
+                        >
+                          Generate Outreach
+                        </button>
+                      )}
                       <a
                         href={job.link}
                         target="_blank"
