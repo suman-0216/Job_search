@@ -8,7 +8,6 @@ export interface OutreachResult {
     body: string;
   };
   linkedin: string;
-  twitter: string;
 }
 
 /**
@@ -65,16 +64,12 @@ export function generateOutreach(job: AugmentedJob, profile: typeof MY_PROFILE):
   // --- LINKEDIN DM ---
   const linkedinBody = `Hi ${company} — ${missionHook.substring(0, 80)}... I'm Suman, Founding AI eng — built ${bestProject.name} (${job.matched_skills[0]}). ${applicantsCount > 0 ? `${applicantsCount} applicants, ` : ''}happy to move fast. Trial project? ${profile.portfolio}`;
 
-  // --- TWITTER/X DM ---
-  const twitterBody = `Hey ${company} team — ${missionHook.substring(0, 70)}... AI/ML eng here, ${job.matched_skills[0] || 'Python/PyTorch'}. Built ${bestProject.name}. Worth a chat? ${profile.portfolio}`;
-
   return {
     email: {
       subject: emailSubject,
       body: emailBody,
     },
     linkedin: linkedinBody.substring(0, 299),
-    twitter: twitterBody.substring(0, 239),
   };
 }
 

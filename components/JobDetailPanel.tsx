@@ -126,17 +126,6 @@ export default function JobDetailPanel({ job: rawJob, onClose }: JobDetailPanelP
                 </div>
                 <pre className="template-block p-4 bg-black/20 rounded-xl border border-[var(--apple-border)] whitespace-pre-wrap text-sm">{outreach.linkedin}</pre>
               </div>
-
-              <div className="detail-section">
-                <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-2">
-                        <p className="metric-label">Twitter/X DM</p>
-                        <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">{outreach.twitter.length} chars</span>
-                    </div>
-                    <button type="button" className="ghost-btn" onClick={() => handleCopy(outreach.twitter, 'twitter')}>{copiedKey === 'twitter' ? 'Copied' : 'Copy'}</button>
-                </div>
-                <pre className="template-block p-4 bg-black/20 rounded-xl border border-[var(--apple-border)] whitespace-pre-wrap text-sm">{outreach.twitter}</pre>
-              </div>
             </section>
           )}
         </div>
