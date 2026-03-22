@@ -10,70 +10,38 @@ interface JobDetailPanelProps {
   onClose: () => void
 }
 
-const timeAgo = (dateStr?: string): string => {
-  if (!dateStr) return 'Unknown';
-  if (dateStr.toLowerCase().includes('ago')) return dateStr;
-  const timestamp = Date.parse(dateStr);
-  if (Number.isNaN(timestamp)) return dateStr;
-  const hours = Math.floor((Date.now() - timestamp) / (1000 * 60 * 60));
-  if (hours < 1) return 'Just now';
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
-
 export default function JobDetailPanel({ job: rawJob, onClose }: JobDetailPanelProps) {
-  const [activeTab, setActiveTab] = useState<'description' | 'outreach'>('description');
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [scoredJob, setScoredJob] = useState<AugmentedJob | null>(null);
-  const [outreach, setOutreach] = useState<OutreachResult | null>(null);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null)
+  const [scoredJob, setScoredJob] = useState<AugmentedJob | null>(null)
+  const [outreach, setOutreach] = useState<OutreachResult | null>(null)
 
   useEffect(() => {
-    if (!rawJob) return;
+    if (!rawJob) return
 
-    // Score the job and generate outreach content
-    const scored = scoreJob(rawJob, MY_PROFILE);
-    const generatedOutreach = generateOutreach(scored, MY_PROFILE);
-    
-    setScoredJob(scored);
-    setOutreach(generatedOutreach);
-    
-    // Always default to outreach tab when "Get Outreach" is clicked
-    setActiveTab('outreach');
+    const scored = scoreJob(rawJob, MY_PROFILE)
+    const generatedOutreach = generateOutreach(scored, MY_PROFILE)
+    setScoredJob(scored)
+    setOutreach(generatedOutreach)
 
     const onEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', onEsc);
+      if (event.key === 'Escape') onClose()
+    }
 
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onEsc)
     return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', onEsc);
-    };
-  }, [rawJob, onClose]);
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', onEsc)
+    }
+  }, [rawJob, onClose])
 
-  if (!rawJob || !scoredJob || !outreach) return null;
+  if (!rawJob || !scoredJob || !outreach) return null
 
   const handleCopy = (text: string, key: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedKey(key);
-    setTimeout(() => setCopiedKey(null), 2000);
-  };
-
-  const getWhyApplySummary = (job: AugmentedJob) => {
-    const skills = job.matched_skills.slice(0, 2).join(' + ');
-    const competition = job.applicants ? `Low competition (${job.applicants} apps).` : '';
-    const isFounding = job.title?.toLowerCase().includes('founding') ? 'Founding role.' : '';
-    
-    switch (job.variant) {
-      case 'A': return `Strong match — your [Healthcare AI] focus and ${skills} experience directly maps to their mission. ${competition} ${isFounding}`;
-      case 'B': return `Strong match — your [Backend/Infra] expertise and ${skills} experience is a direct hit for their stack. ${competition} ${isFounding}`;
-      case 'C': return `Excellent match — your [Agentic AI] work and ${skills} skills align with their decision-making focus. ${competition} ${isFounding}`;
-      case 'D': return `Niche match — your [On-Device/Edge] ML work and ${skills} expertise is exactly what they need for privacy-first AI. ${competition} ${isFounding}`;
-      default: return `Good match — your ${skills} experience is highly relevant to their core requirements. ${competition} ${isFounding}`;
-    }
-  };
+    navigator.clipboard.writeText(text)
+    setCopiedKey(key)
+    setTimeout(() => setCopiedKey(null), 2000)
+  }
 
   return (
     <div className="fixed inset-0 z-50">
@@ -83,7 +51,9 @@ export default function JobDetailPanel({ job: rawJob, onClose }: JobDetailPanelP
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-[38px] leading-[1.02] font-semibold tracking-tight">{scoredJob.title}</h2>
-              <p className="mt-2 text-base text-[var(--apple-text-muted)]">{scoredJob.company || scoredJob.companyName} | {scoredJob.location}</p>
+              <p className="mt-2 text-base text-[var(--apple-text-muted)]">
+                {scoredJob.company || scoredJob.companyName} | {scoredJob.location}
+              </p>
             </div>
             <button type="button" onClick={onClose} className="ghost-icon p-2" aria-label="Close">
               <XMarkIcon className="h-6 w-6" />
@@ -91,48 +61,39 @@ export default function JobDetailPanel({ job: rawJob, onClose }: JobDetailPanelP
           </div>
         </div>
 
-        <div className="px-8 border-b border-[var(--apple-border)]">
-          <div className="flex items-center gap-6 -mb-px">
-            <button className={`detail-tab ${activeTab === 'description' ? 'active' : ''}`} onClick={() => setActiveTab('description')}>Description</button>
-            <button className={`detail-tab ${activeTab === 'outreach' ? 'active' : ''}`} onClick={() => setActiveTab('outreach')}>Outreach Messages</button>
-          </div>
-        </div>
-        
-        <div className="detail-body px-8 py-6 h-[calc(100%-350px)] overflow-y-auto">
-          {activeTab === 'description' && (
-            <section className="detail-section">
-              <p className="metric-label">Why Apply?</p>
-              <p className="mt-2 text-base font-medium text-blue-400/90 italic leading-relaxed">&quot;{getWhyApplySummary(scoredJob)}&quot;</p>
-              <hr className="my-6 border-[var(--apple-border)]" />
-              <p className="metric-label">Job Description</p>
-              <p className="mt-4 whitespace-pre-wrap text-[15px] leading-7 text-[var(--apple-text)]">{scoredJob.description}</p>
-            </section>
-          )}
-
-          {activeTab === 'outreach' && (
-            <section className="space-y-8 pb-12">
-              <div className="detail-section">
-                <div className="flex items-center justify-between gap-2 mb-3"><p className="metric-label">Cold Email</p><button type="button" className="ghost-btn" onClick={() => handleCopy(outreach.email.body, 'email')}>{copiedKey === 'email' ? 'Copied' : 'Copy'}</button></div>
-                <pre className="template-block p-4 bg-black/20 rounded-xl border border-[var(--apple-border)] whitespace-pre-wrap text-sm"><span className="text-[var(--apple-text-muted)] font-bold">Subject: {outreach.email.subject}</span>{`\n\n${outreach.email.body}`}</pre>
+        <div className="detail-body px-8 py-6 h-[calc(100%-270px)] overflow-y-auto">
+          <section className="space-y-8 pb-12">
+            <div className="detail-section">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <p className="metric-label">Cold Email</p>
+                <button type="button" className="ghost-btn" onClick={() => handleCopy(outreach.email.body, 'email')}>
+                  {copiedKey === 'email' ? 'Copied' : 'Copy'}
+                </button>
               </div>
+              <pre className="template-block whitespace-pre-wrap rounded-xl border border-[var(--apple-border)] bg-black/20 p-4 text-sm">
+                <span className="font-bold text-[var(--apple-text-muted)]">Subject: {outreach.email.subject}</span>
+                {`\n\n${outreach.email.body}`}
+              </pre>
+            </div>
 
-              <div className="detail-section">
-                <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-2">
-                        <p className="metric-label">LinkedIn DM</p>
-                        <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">{outreach.linkedin.length} chars</span>
-                    </div>
-                    <button type="button" className="ghost-btn" onClick={() => handleCopy(outreach.linkedin, 'linkedin')}>{copiedKey === 'linkedin' ? 'Copied' : 'Copy'}</button>
+            <div className="detail-section">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <p className="metric-label">LinkedIn DM</p>
+                  <span className="rounded bg-blue-500/20 px-1.5 py-0.5 text-[10px] text-blue-400">{outreach.linkedin.length} chars</span>
                 </div>
-                <pre className="template-block p-4 bg-black/20 rounded-xl border border-[var(--apple-border)] whitespace-pre-wrap text-sm">{outreach.linkedin}</pre>
+                <button type="button" className="ghost-btn" onClick={() => handleCopy(outreach.linkedin, 'linkedin')}>
+                  {copiedKey === 'linkedin' ? 'Copied' : 'Copy'}
+                </button>
               </div>
-            </section>
-          )}
+              <pre className="template-block whitespace-pre-wrap rounded-xl border border-[var(--apple-border)] bg-black/20 p-4 text-sm">{outreach.linkedin}</pre>
+            </div>
+          </section>
         </div>
-        
-        <div className="detail-footer p-8 border-t border-[var(--apple-border)] flex items-center gap-4">
-          <a href={scoredJob.link || '#'} target="_blank" rel="noreferrer" className="action-pill bg-blue-600 hover:bg-blue-500 text-white border-none px-6">
-            <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-2" /> Open Application
+
+        <div className="detail-footer flex items-center gap-4 border-t border-[var(--apple-border)] p-8">
+          <a href={scoredJob.link || '#'} target="_blank" rel="noreferrer" className="action-pill border-none bg-blue-600 px-6 text-white hover:bg-blue-500">
+            <ArrowTopRightOnSquareIcon className="mr-2 h-4 w-4" /> Open Application
           </a>
         </div>
       </aside>

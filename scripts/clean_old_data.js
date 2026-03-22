@@ -3,10 +3,7 @@ import path from 'path'
 
 const DATA_DIR = './data'
 const DEFAULT_LATEST_JOBS_TIME = 5
-const DEFAULT_APPLIED_JOBS_TIME = 30
 const RETENTION_DAYS = Number.parseInt(process.env.LATEST_JOBS_TIME || `${DEFAULT_LATEST_JOBS_TIME}`, 10) || DEFAULT_LATEST_JOBS_TIME
-const APPLIED_RETENTION_DAYS = Number.parseInt(process.env.APPLIED_JOBS_TIME || `${DEFAULT_APPLIED_JOBS_TIME}`, 10) || DEFAULT_APPLIED_JOBS_TIME
-const APPLIED_FILE = 'applied_jobs.json'
 
 const DAY_MS = 1000 * 60 * 60 * 24
 
@@ -15,50 +12,42 @@ const extractDateToken = (fileName) => {
   return match ? match[1] : null
 }
 
-function loadAppliedJobs() {
-  const appliedPath = path.join(DATA_DIR, APPLIED_FILE)
-  if (!fs.existsSync(appliedPath)) return { jobs: {} }
+const toDayStartUtc = (dateLike) => {
+  const parsed = new Date(dateLike)
+  if (Number.isNaN(parsed.getTime())) return null
+  return new Date(Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth(), parsed.getUTCDate()))
+}
 
-  try {
-    const parsed = JSON.parse(fs.readFileSync(appliedPath, 'utf-8'))
-    return parsed?.jobs ? parsed : { jobs: {} }
-  } catch {
-    return { jobs: {} }
-  }
+const getAgeDaysFromToken = (token, now) => {
+  const tokenDay = toDayStartUtc(`${token}T00:00:00.000Z`)
+  const nowDay = toDayStartUtc(now.toISOString())
+  if (!tokenDay || !nowDay) return null
+  return Math.floor((nowDay.getTime() - tokenDay.getTime()) / DAY_MS)
 }
 
 function cleanOldData() {
   console.log(`Cleaning data files older than ${RETENTION_DAYS} days...`)
+  if (!fs.existsSync(DATA_DIR)) {
+    console.log('No data directory found. Skipping cleanup.')
+    return
+  }
+
   const files = fs.readdirSync(DATA_DIR)
   const now = new Date()
 
-  const appliedStore = loadAppliedJobs()
-  const protectedDates = new Set()
-  const freshAppliedJobs = {}
-
-  Object.entries(appliedStore.jobs).forEach(([key, value]) => {
-    const appliedAt = new Date(value.appliedAt || value.lastSeenAt || now.toISOString())
-    const ageDays = Math.floor((now - appliedAt) / DAY_MS)
-
-    if (ageDays <= APPLIED_RETENTION_DAYS) {
-      freshAppliedJobs[key] = value
-      if (value.sourceDate) protectedDates.add(value.sourceDate)
-    }
-  })
-
-  const appliedPath = path.join(DATA_DIR, APPLIED_FILE)
-  fs.writeFileSync(appliedPath, JSON.stringify({ jobs: freshAppliedJobs }, null, 2), 'utf-8')
-
   files.forEach((file) => {
-    if (!file.endsWith('.json') || file === APPLIED_FILE) return
+    if (!file.endsWith('.json')) return
 
     const filePath = path.join(DATA_DIR, file)
-    const stats = fs.statSync(filePath)
-    const fileDate = stats.mtime
-    const diffDays = Math.ceil(Math.abs(now - fileDate) / DAY_MS)
     const dateToken = extractDateToken(file)
+    const diffDays = dateToken ? getAgeDaysFromToken(dateToken, now) : null
 
-    if (diffDays > RETENTION_DAYS && !(dateToken && protectedDates.has(dateToken))) {
+    if (diffDays === null) {
+      console.log(`Skipping ${file}: could not derive date from filename.`)
+      return
+    }
+
+    if (diffDays > RETENTION_DAYS) {
       console.log(`Deleting old file: ${file} (${diffDays} days old)`)
       fs.unlinkSync(filePath)
     }

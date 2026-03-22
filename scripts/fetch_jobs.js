@@ -1,6 +1,7 @@
 import fetch from 'node-fetch'
 import fs from 'fs'
 import path from 'path'
+import { createHash } from 'crypto'
 import 'dotenv/config'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { XMLParser } from 'fast-xml-parser'
@@ -17,8 +18,9 @@ const envInt = (name, fallback) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
 }
 
-const GOOGLE_API_KEY = required('GOOGLE_API_KEY', process.env.GOOGLE_API_KEY)
 const APIFY_TOKEN = required('APIFY_TOKEN', process.env.APIFY_TOKEN)
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || ''
+const AI_SKILL_ENRICHMENT_ENABLED = Boolean(GOOGLE_API_KEY)
 
 const AI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash-preview'
 const APIFY_TIMEOUT_SECS = envInt('APIFY_TIMEOUT_SECS', 480)
@@ -26,17 +28,43 @@ const APIFY_DATASET_LIMIT = envInt('APIFY_DATASET_LIMIT', 150)
 const APIFY_POLL_INTERVAL_MS = envInt('APIFY_POLL_INTERVAL_MS', 5000)
 const GOOGLE_ENRICH_LIMIT = envInt('GOOGLE_ENRICH_LIMIT', 120)
 const SKILL_DELAY_MS = envInt('SKILL_DELAY_MS', 120)
+const CROSS_DAY_DEDUPE_DAYS = envInt('CROSS_DAY_DEDUPE_DAYS', 14)
 
 const DATA_DIR = './data'
 const NOW = new Date()
 const TIMESTAMP = `${NOW.getFullYear()}-${String(NOW.getMonth() + 1).padStart(2, '0')}-${String(NOW.getDate()).padStart(2, '0')}-${String(NOW.getHours()).padStart(2, '0')}${String(NOW.getMinutes()).padStart(2, '0')}`
 
-const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY)
-const model = genAI.getGenerativeModel({ model: AI_MODEL })
+const genAI = AI_SKILL_ENRICHMENT_ENABLED ? new GoogleGenerativeAI(GOOGLE_API_KEY) : null
+const model = AI_SKILL_ENRICHMENT_ENABLED && genAI ? genAI.getGenerativeModel({ model: AI_MODEL }) : null
 const xmlParser = new XMLParser()
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const normalizeText = (value) => String(value || '').toLowerCase()
+const decodeHtmlEntities = (value) =>
+  String(value || '')
+    .replace(/&#8217;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+const normalizeDateKey = (value) => {
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return ''
+  return `${parsed.getUTCFullYear()}-${String(parsed.getUTCMonth() + 1).padStart(2, '0')}-${String(parsed.getUTCDate()).padStart(2, '0')}`
+}
+
+const extractDateToken = (fileName) => {
+  const match = fileName.match(/(\d{4}-\d{2}-\d{2})/)
+  return match ? match[1] : null
+}
+
+const makeJobKey = (job) => {
+  const link = normalizeText(job.link)
+  if (link) return `link:${link}`
+  const raw = `${normalizeText(job.title)}|${normalizeText(job.company)}|${normalizeText(job.location)}`
+  return `hash:${createHash('sha1').update(raw).digest('hex')}`
+}
 
 // --- TARGETING CONSTANTS ---
 
@@ -101,14 +129,91 @@ const passesTargetFilters = (job) => {
 const dedupeJobs = (jobs) => {
   const seen = new Set()
   return jobs.filter((job) => {
-    const key = `${normalizeText(job.link)}|${normalizeText(job.title)}|${normalizeText(job.company)}`
+    const key = makeJobKey(job)
     if (seen.has(key)) return false
     seen.add(key)
     return true
   })
 }
 
+const validateJobSchema = (job) => {
+  const title = String(job.title || '').trim()
+  const link = String(job.link || '').trim()
+  const timestamp = String(job.timestamp || '').trim()
+  if (!title || !link || !timestamp) return false
+  return !Number.isNaN(Date.parse(timestamp))
+}
+
+const sanitizeJobs = (jobs) => {
+  let dropped = 0
+  const valid = jobs.filter((job) => {
+    const ok = validateJobSchema(job)
+    if (!ok) dropped += 1
+    return ok
+  })
+  if (dropped > 0) {
+    console.log(`Dropped ${dropped} invalid jobs (missing title/link/timestamp or bad timestamp).`)
+  }
+  return valid
+}
+
+const buildRollingIndex = () => {
+  if (!fs.existsSync(DATA_DIR)) return new Set()
+
+  const nowDay = normalizeDateKey(new Date().toISOString())
+  const nowDate = new Date(`${nowDay}T00:00:00.000Z`)
+  const maxAgeMs = CROSS_DAY_DEDUPE_DAYS * 24 * 60 * 60 * 1000
+  const index = new Set()
+
+  const files = fs
+    .readdirSync(DATA_DIR)
+    .filter((file) => file.endsWith('.json') && file !== 'applied_jobs.json')
+
+  for (const file of files) {
+    const dateToken = extractDateToken(file)
+    if (!dateToken) continue
+
+    const fileDate = new Date(`${dateToken}T00:00:00.000Z`)
+    if (Number.isNaN(fileDate.getTime())) continue
+    if (nowDate.getTime() - fileDate.getTime() > maxAgeMs) continue
+
+    try {
+      const content = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), 'utf-8'))
+      const jobs = Array.isArray(content?.jobs) ? content.jobs : (Array.isArray(content) ? content : [])
+      for (const job of jobs) {
+        index.add(makeJobKey(job))
+      }
+    } catch {
+      // Ignore malformed historical files and continue.
+    }
+  }
+
+  console.log(`Loaded rolling dedupe index with ${index.size} jobs from last ${CROSS_DAY_DEDUPE_DAYS} days.`)
+  return index
+}
+
+const dedupeAcrossDays = (jobs, rollingIndex) => {
+  const deduped = []
+  let dropped = 0
+
+  for (const job of jobs) {
+    const key = makeJobKey(job)
+    if (rollingIndex.has(key)) {
+      dropped += 1
+      continue
+    }
+    rollingIndex.add(key)
+    deduped.push(job)
+  }
+
+  if (dropped > 0) {
+    console.log(`Dropped ${dropped} cross-day duplicate jobs.`)
+  }
+  return deduped
+}
+
 async function extractSkillsWithAI(jobDescription) {
+  if (!AI_SKILL_ENRICHMENT_ENABLED || !model) return []
   if (!jobDescription || jobDescription.length < 50) return []
   try {
     const prompt = `Extract the top 5-7 most important technical skills from this job description. Return a simple comma-separated list. Example: Python, PyTorch, AWS, Docker, Kubernetes. Job Description: "${jobDescription}"`
@@ -122,6 +227,10 @@ async function extractSkillsWithAI(jobDescription) {
 }
 
 async function enrichJobsWithSkills(jobs) {
+  if (!AI_SKILL_ENRICHMENT_ENABLED) {
+    console.log('GOOGLE_API_KEY not set. Skipping AI skill enrichment.')
+    return jobs.map((job) => ({ ...job, skills: [] }))
+  }
   const enrichCount = Math.min(jobs.length, GOOGLE_ENRICH_LIMIT)
   console.log(`Enriching ${enrichCount}/${jobs.length} jobs with AI skills...`)
   const enriched = []
@@ -187,9 +296,27 @@ async function scrapeFundedStartups() {
     'https://techcrunch.com/category/startups/feed/',
     'https://venturebeat.com/category/ai/feed/',
   ]
-  const fundingKeywords = /\b(raises|raised|seed|series a|million|funding|investment|launches with)\b/i
+  const fundingKeywords = /\b(raises?|raised|nabs|secures?|lands|closes?|funding|seed|series\s+[a-d]|pre-seed|venture\s+funding)\b/i
+  const blockedHeadlineKeywords = /\b(court|lawsuit|pentagon|trump|policy|regulation|hearing|senate)\b/i
+  const companyPatterns = [
+    /^(.+?)\s+(?:raises?|raised|nabs|secures?|lands|closes?)\b/i,
+    /^(.+?)\s+(?:announces?)\s+(?:seed|series\s+[a-d]|pre-seed)\b/i,
+  ]
   const sevenDaysAgo = new Date(NOW.getTime() - 7 * 24 * 60 * 60 * 1000)
   const results = []
+  const seen = new Set()
+
+  const extractCompanyName = (headline) => {
+    const cleaned = decodeHtmlEntities(headline)
+      .replace(/^exclusive:\s*/i, '')
+      .replace(/^\[.*?\]\s*/, '')
+      .trim()
+    for (const pattern of companyPatterns) {
+      const match = cleaned.match(pattern)
+      if (match?.[1]) return match[1].trim()
+    }
+    return null
+  }
 
   const responses = await Promise.allSettled(feeds.map(url => fetch(url).then(res => res.text())))
   for (const res of responses) {
@@ -199,18 +326,38 @@ async function scrapeFundedStartups() {
     for (const item of items) {
       const pubDate = new Date(item.pubDate)
       if (pubDate < sevenDaysAgo) continue
-      const text = `${item.title} ${item.description || ''} ${item['content:encoded'] || ''}`
+      const title = decodeHtmlEntities(item.title || '')
+      if (!title) continue
+      if (blockedHeadlineKeywords.test(title)) continue
+
+      const text = decodeHtmlEntities(`${title} ${item.description || ''} ${item['content:encoded'] || ''}`)
       if (!fundingKeywords.test(text)) continue
 
-      const companyName = item.title.split(' raises')[0].split(' raises')[0].trim()
+      const companyName = extractCompanyName(title)
+      if (!companyName || companyName.length < 2 || companyName.length > 80) continue
+
+      let articleUrl = ''
+      try {
+        articleUrl = new URL(String(item.link || '')).toString()
+      } catch {
+        continue
+      }
+
+      const dedupeKey = `${normalizeText(companyName)}|${normalizeText(articleUrl)}`
+      if (seen.has(dedupeKey)) continue
+      seen.add(dedupeKey)
+
       const fundingMatch = text.match(/\$?(\d{1,3}(?:,\d{3})*(\.\d+)?)\s*million|\$?(\d+)\s*M/i)
       const ceoMatch = text.match(/(?:CEO|founder)\s+([A-Z][a-z]+)\s+([A-Z][a-z]+)/)
 
       results.push({
         company_name: companyName,
+        title,
         funding_amount: fundingMatch ? fundingMatch[0] : 'N/A',
         round_type: text.match(/series\s+[a-d]|seed/i)?.[0] || 'N/A',
-        article_url: item.link,
+        link: articleUrl,
+        url: articleUrl,
+        article_url: articleUrl,
         published_date: pubDate.toISOString(),
         ceo_name: ceoMatch ? `${ceoMatch[1]} ${ceoMatch[2]}` : 'N/A',
         domain: `${normalizeText(companyName.split(' ')[0])}.com`,
@@ -309,7 +456,11 @@ async function main() {
   ])
 
   const rawLinkedin = linkedinResult.status === 'fulfilled' ? linkedinResult.value : []
-  const jobs = await enrichJobsWithSkills(dedupeJobs(rawLinkedin))
+  const rollingIndex = buildRollingIndex()
+  const dedupedInRun = dedupeJobs(rawLinkedin)
+  const validated = sanitizeJobs(dedupedInRun)
+  const uniqueAcrossDays = dedupeAcrossDays(validated, rollingIndex)
+  const jobs = await enrichJobsWithSkills(uniqueAcrossDays)
   const funded_startups = fundedResult.status === 'fulfilled' ? fundedResult.value : { error: fundedResult.reason?.message }
   const stealth_startups = stealthResult.status === 'fulfilled' ? stealthResult.value : { error: stealthResult.reason?.message }
 
@@ -319,6 +470,9 @@ async function main() {
     jobs,
     source_stats: {
       linkedin_jobs: rawLinkedin.length,
+      unique_in_run: dedupedInRun.length,
+      schema_valid_jobs: validated.length,
+      unique_across_days: uniqueAcrossDays.length,
       enriched_jobs: jobs.length,
     },
     funded_startups,

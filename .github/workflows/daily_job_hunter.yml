@@ -37,6 +37,12 @@ jobs:
           APPLIED_JOBS_TIME: ${{ vars.APPLIED_JOBS_TIME || '30' }}
         run: npm run clean
 
+      - name: Sync snapshots to Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run sync-supabase
+
       - name: Commit and push updated data
         run: |
           git config --global user.email "actions@github.com"

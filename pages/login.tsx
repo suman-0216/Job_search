@@ -4,29 +4,44 @@ import { useRouter } from 'next/router'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
 export default function Login() {
+  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  const handleLogin = async (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     setError('')
+    setNotice('')
     setLoading(true)
     try {
-      const response = await fetch('/api/auth/login', {
+      const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register'
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          email: email.trim(),
           username: username.trim(),
+          fullName: username.trim(),
           password,
         }),
       })
 
       if (!response.ok) {
-        setError('Invalid credentials')
+        const payload = (await response.json()) as { error?: string }
+        setError(payload.error || (mode === 'login' ? 'Invalid credentials' : 'Registration failed'))
+        return
+      }
+
+      const payload = (await response.json()) as { message?: string }
+      if (mode === 'register') {
+        setNotice(payload.message || 'Account created. Verify your email from inbox and then sign in.')
+        setMode('login')
         return
       }
 
@@ -39,34 +54,66 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--apple-bg)] font-sans antialiased text-[var(--apple-text)] px-5">
-      <div className="w-full max-w-[420px] px-8 py-12 flex flex-col items-center metric-card">
-        <div className="mb-10 text-center">
-          <p className="text-[12px] text-[var(--apple-text-muted)] font-medium uppercase tracking-widest">Career Pipeline</p>
+    <div className="login-shell">
+      <div className="login-card">
+        <div className="login-head">
+          <p className="login-kicker">Career Pipeline</p>
         </div>
 
-        <form onSubmit={handleLogin} className="w-full flex flex-col gap-5">
+        <div className="login-tabs">
+          <button
+            type="button"
+            className={`login-tab ${mode === 'login' ? 'active' : ''}`}
+            onClick={() => setMode('login')}
+          >
+            Login
+          </button>
+          <button
+            type="button"
+            className={`login-tab ${mode === 'register' ? 'active' : ''}`}
+            onClick={() => setMode('register')}
+          >
+            Create Account
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="login-form">
+          {mode === 'register' && (
+            <div>
+              <label className="login-label">
+                Email
+              </label>
+              <input
+                type="email"
+                className="apple-input login-input"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </div>
+          )}
           <div>
-            <label className="block text-[11px] font-bold text-[var(--apple-text-muted)] uppercase tracking-[0.15em] mb-2 px-1">
-              Username
+            <label className="login-label">
+              {mode === 'login' ? 'Username or Email' : 'Username'}
             </label>
             <input
               type="text"
-              className="apple-input w-full p-4 text-[14px] font-medium"
-              placeholder="Username"
+              className="apple-input login-input"
+              placeholder={mode === 'login' ? 'Username or email' : 'Username'}
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               required
             />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-[var(--apple-text-muted)] uppercase tracking-[0.15em] mb-2 px-1">
+            <label className="login-label">
               Password
             </label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
-                className="apple-input w-full p-4 pr-20 text-[14px] font-medium"
+                className="apple-input login-input pr-24"
                 placeholder="********"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
@@ -74,7 +121,7 @@ export default function Login() {
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--apple-text-muted)]"
+                className="login-show-btn"
                 onClick={() => setShowPassword((value) => !value)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
@@ -84,17 +131,22 @@ export default function Login() {
             </div>
           </div>
 
-          {error && (
-            <div className="text-[var(--apple-error)] text-[12px] font-bold text-center bg-[rgba(255,69,58,0.1)] py-2 rounded-lg">
-              Authentication failed
+          {notice && (
+            <div className="rounded-[10px] bg-[rgba(52,199,89,0.12)] px-3 py-2 text-center text-xs font-semibold text-[var(--apple-success)]">
+              {notice}
             </div>
           )}
 
-          <button type="submit" disabled={loading} className="apple-btn-primary w-full py-4 mt-2 text-[14px] font-bold uppercase tracking-widest shadow-lg disabled:opacity-60">
-            {loading ? 'Signing in...' : 'Sign in'}
+          {error && (
+            <div className="login-error">
+              {error}
+            </div>
+          )}
+
+          <button type="submit" disabled={loading} className="apple-btn-primary login-submit disabled:opacity-60">
+            {loading ? (mode === 'login' ? 'Signing in...' : 'Creating...') : (mode === 'login' ? 'Sign in' : 'Create account')}
           </button>
         </form>
-
       </div>
     </div>
   )

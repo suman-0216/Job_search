@@ -2,7 +2,6 @@ import '../styles/globals.css'
 import type { AppProps } from 'next/app'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { ThemeProvider } from 'next-themes'
 
 export default function App({ Component, pageProps }: AppProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -59,9 +58,5 @@ export default function App({ Component, pageProps }: AppProps) {
     return null
   }
 
-  return (
-    <ThemeProvider attribute="class" defaultTheme="dark">
-      <Component {...pageProps} />
-    </ThemeProvider>
-  )
+  return <Component {...pageProps} />
 }

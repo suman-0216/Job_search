@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { CheckIcon, MoonIcon, SunIcon } from '@heroicons/react/24/solid'
-import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline'
+import { ArrowTopRightOnSquareIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useRouter } from 'next/router'
 import JobDetailPanel from '../components/JobDetailPanel'
 import CustomSelect, { SelectOption } from '../components/CustomSelect'
@@ -62,6 +62,16 @@ interface AppliedJob {
   sourceDate: string
   appliedAt: string
   lastSeenAt: string
+  status: string
+}
+
+interface RunRequestStatus {
+  id: string
+  status: 'queued' | 'running' | 'completed' | 'failed'
+  requestedAt?: string
+  startedAt?: string | null
+  finishedAt?: string | null
+  error?: string | null
 }
 
 const EMPTY_DAY: DashboardDay = {
@@ -139,9 +149,10 @@ const timeAgo = (dateStr: string): string => {
 
 const formatDate = (date: string): string => {
   if (!date) return 'No date'
-  const parsed = Date.parse(date)
+  const parsed = Date.parse(`${date}T12:00:00.000Z`)
   if (Number.isNaN(parsed)) return date
   return new Date(parsed).toLocaleDateString(undefined, {
+    timeZone: 'America/Los_Angeles',
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -149,18 +160,33 @@ const formatDate = (date: string): string => {
 }
 
 const toIsoDate = (date: Date): string => {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
+  const year = date.getUTCFullYear()
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const toIsoDateInTimezone = (date: Date, timeZone: string): string => {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date)
+  const year = parts.find((part) => part.type === 'year')?.value || '1970'
+  const month = parts.find((part) => part.type === 'month')?.value || '01'
+  const day = parts.find((part) => part.type === 'day')?.value || '01'
   return `${year}-${month}-${day}`
 }
 
 const getPastDates = (count: number): string[] => {
   const safeCount = Math.max(1, count)
-  const today = new Date()
+  const todayToken = toIsoDateInTimezone(new Date(), 'America/Los_Angeles')
+  const [year, month, day] = todayToken.split('-').map((value) => Number(value))
+  const today = new Date(Date.UTC(year, month - 1, day))
   return Array.from({ length: safeCount }, (_, index) => {
     const value = new Date(today)
-    value.setDate(today.getDate() - index)
+    value.setUTCDate(today.getUTCDate() - index)
     return toIsoDate(value)
   })
 }
@@ -190,7 +216,7 @@ export default function Dashboard() {
   const router = useRouter()
   const [data, setData] = useState<DashboardDay[]>([])
   const [selectedDate, setSelectedDate] = useState('')
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark')
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [selectedJob, setSelectedJob] = useState<NormalizedJob | null>(null)
 
   const [titleSearch, setTitleSearch] = useState('')
@@ -202,6 +228,16 @@ export default function Dashboard() {
   const [pastFiveDates, setPastFiveDates] = useState<string[]>([])
   const [appliedJobs, setAppliedJobs] = useState<Record<string, AppliedJob>>({})
   const [appliedOnly, setAppliedOnly] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [profile, setProfile] = useState<{ email: string; username: string; fullName: string } | null>(null)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [runStatus, setRunStatus] = useState<RunRequestStatus | null>(null)
+  const [lastRunStatus, setLastRunStatus] = useState<RunRequestStatus['status'] | null>(null)
+  const [dismissedRunStatusId, setDismissedRunStatusId] = useState<string | null>(null)
 
   const typeOptions: SelectOption[] = [
     { value: '', label: 'All types' },
@@ -215,11 +251,56 @@ export default function Dashboard() {
     { value: 'lowCompetition', label: 'Sort: low competition' },
   ]
 
+  const appliedStatusOptions: SelectOption[] = [
+    { value: 'applied', label: 'Applied' },
+    { value: 'assessment', label: 'Assessment' },
+    { value: 'interviewing', label: 'Interviewing' },
+    { value: 'offer', label: 'Offer' },
+    { value: 'declined', label: 'Declined' },
+  ]
+
   const getJobKey = (job: NormalizedJob): string => {
-    const keyFromLink = toStringValue(job.link)
-    if (keyFromLink) return keyFromLink
-    return `${job.title}__${job.company}__${job.location}`
+    const keyFromLink = toStringValue(job.link).trim()
+    const normalizedLink = keyFromLink.toLowerCase()
+    if (keyFromLink && normalizedLink !== '#' && normalizedLink !== 'n/a' && normalizedLink !== 'na') {
+      return keyFromLink
+    }
+    return [
+      toStringValue(job.sourceType, 'unknown'),
+      toStringValue(job.title, 'untitled'),
+      toStringValue(job.company, 'unknown-company'),
+      toStringValue(job.location, 'unknown-location'),
+      toStringValue(job.postedAt, 'unknown-time'),
+      toStringValue(job.salary, 'unknown-salary'),
+    ]
+      .map((part) => part.toLowerCase().replace(/\s+/g, ' ').trim())
+      .join('__')
   }
+
+  const hydrateDataFromPayload = useCallback((dataPayload: { days?: unknown; latestWindowDays?: number } | unknown) => {
+    const latestWindowDays =
+      typeof dataPayload === 'object' && dataPayload !== null && 'latestWindowDays' in dataPayload
+        ? Number((dataPayload as { latestWindowDays?: number }).latestWindowDays) || 5
+        : 5
+    const dynamicPastDates = getPastDates(latestWindowDays)
+    setPastFiveDates(dynamicPastDates)
+
+    const allData: unknown =
+      typeof dataPayload === 'object' && dataPayload !== null && 'days' in dataPayload
+        ? (dataPayload as { days?: unknown }).days
+        : dataPayload
+    const incoming = parseDashboardDays(allData)
+    setData(incoming)
+    const availableDates = new Set(incoming.map((item) => item.date))
+    const latestFromWindow = dynamicPastDates.find((date) => availableDates.has(date))
+    setSelectedDate((prev) => (prev && availableDates.has(prev) ? prev : latestFromWindow || incoming[0]?.date || dynamicPastDates[0] || ''))
+  }, [])
+
+  const refreshDashboardData = useCallback(async () => {
+    const dataResponse = await fetch('/api/data')
+    const dataPayload = (await dataResponse.json()) as { days?: unknown; latestWindowDays?: number } | unknown
+    hydrateDataFromPayload(dataPayload)
+  }, [hydrateDataFromPayload])
 
   useEffect(() => {
     const lastFive = getPastDates(5)
@@ -230,37 +311,27 @@ export default function Dashboard() {
       setTheme(savedTheme)
     }
 
-    Promise.all([fetch('/api/data'), fetch('/api/applied')])
-      .then(async ([dataResponse, appliedResponse]) => {
+    Promise.all([fetch('/api/data'), fetch('/api/applied'), fetch('/api/auth/profile'), fetch('/api/user/runs/latest')])
+      .then(async ([dataResponse, appliedResponse, profileResponse, runResponse]) => {
         const dataPayload = (await dataResponse.json()) as { days?: unknown; latestWindowDays?: number } | unknown
-        const latestWindowDays =
-          typeof dataPayload === 'object' && dataPayload !== null && 'latestWindowDays' in dataPayload
-            ? Number((dataPayload as { latestWindowDays?: number }).latestWindowDays) || 5
-            : 5
-        const dynamicPastDates = getPastDates(latestWindowDays)
-        setPastFiveDates(dynamicPastDates)
-
-        const allData: unknown =
-          typeof dataPayload === 'object' && dataPayload !== null && 'days' in dataPayload
-            ? (dataPayload as { days?: unknown }).days
-            : dataPayload
+        hydrateDataFromPayload(dataPayload)
         const appliedPayload = (await appliedResponse.json()) as { jobs?: Record<string, AppliedJob> }
+        const profilePayload = (await profileResponse.json()) as { email?: string; username?: string; fullName?: string }
+        const runPayload = (await runResponse.json()) as { run?: RunRequestStatus | null }
 
-        const incoming = toArray<DashboardDay>(allData).map((day) => ({
-          date: toStringValue(day.date),
-          jobs: toArray<JobRecord>(day.jobs),
-          funded: toArray<Record<string, unknown>>(day.funded),
-          stealth: toArray<Record<string, unknown>>(day.stealth),
-        }))
-
-        setData(incoming)
         setAppliedJobs(appliedPayload.jobs || {})
-        const availableDates = new Set(incoming.map((item) => item.date))
-        const latestFromWindow = dynamicPastDates.find((date) => availableDates.has(date))
-        setSelectedDate(latestFromWindow || incoming[0]?.date || dynamicPastDates[0] || lastFive[0])
+        setRunStatus(runPayload.run || null)
+        setLastRunStatus(runPayload.run?.status || null)
+        if (profilePayload.username) {
+          setProfile({
+            email: profilePayload.email || '',
+            username: profilePayload.username,
+            fullName: profilePayload.fullName || profilePayload.username,
+          })
+        }
       })
       .catch(() => setData([]))
-  }, [])
+  }, [hydrateDataFromPayload])
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -270,6 +341,41 @@ export default function Dashboard() {
     }
     localStorage.setItem('theme', theme)
   }, [theme])
+
+  useEffect(() => {
+    let isActive = true
+    const pollLatestRun = async () => {
+      try {
+        const response = await fetch('/api/user/runs/latest')
+        const payload = (await response.json()) as { run?: RunRequestStatus | null }
+        if (!isActive) return
+        const nextRun = payload.run || null
+        setRunStatus(nextRun)
+        if (nextRun?.id) {
+          setDismissedRunStatusId((prev) => (prev === nextRun.id ? prev : null))
+        }
+
+        if (nextRun?.status && nextRun.status !== lastRunStatus) {
+          if (nextRun.status === 'completed') {
+            await refreshDashboardData()
+          }
+          setLastRunStatus(nextRun.status)
+        }
+      } catch {
+        // keep existing dashboard state on polling failures
+      }
+    }
+
+    void pollLatestRun()
+    const timer = window.setInterval(() => {
+      void pollLatestRun()
+    }, 8000)
+
+    return () => {
+      isActive = false
+      window.clearInterval(timer)
+    }
+  }, [lastRunStatus, refreshDashboardData])
 
   const currentDay = useMemo(() => {
     return data.find((day) => day.date === selectedDate) || data[0] || EMPTY_DAY
@@ -400,13 +506,20 @@ export default function Dashboard() {
 
   const allJobs = useMemo(() => [...jobs, ...fundedJobs, ...stealthJobs], [jobs, fundedJobs, stealthJobs])
 
+  const visiblePoolJobs = useMemo(() => {
+    return allJobs.filter((job) => {
+      const isApplied = Boolean(appliedJobs[getJobKey(job)])
+      return appliedOnly ? isApplied : !isApplied
+    })
+  }, [allJobs, appliedJobs, appliedOnly])
+
   const filteredJobs = useMemo(() => {
     const titleNeedle = titleSearch.trim().toLowerCase()
     const locationNeedle = locationSearch.trim().toLowerCase()
     const baseJobs =
       sourceTab === 'all'
-        ? allJobs
-        : allJobs.filter((job) =>
+        ? visiblePoolJobs
+        : visiblePoolJobs.filter((job) =>
             sourceTab === 'startups'
               ? job.sourceType === 'startups'
               : job.sourceType === sourceTab,
@@ -424,7 +537,6 @@ export default function Dashboard() {
         const slot = getRunSlotForTimestamp(job.postedAt)
         if (slot !== selectedRun) return false
       }
-      if (appliedOnly && !appliedJobs[getJobKey(job)]) return false
       return true
     })
 
@@ -433,19 +545,41 @@ export default function Dashboard() {
       if (sortMode === 'lowCompetition') return a.applicants - b.applicants
       return toEpoch(b.postedAt) - toEpoch(a.postedAt)
     })
-  }, [allJobs, appliedJobs, appliedOnly, locationSearch, selectedRun, sortMode, sourceTab, titleSearch, typeFilter])
+  }, [locationSearch, selectedRun, sortMode, sourceTab, titleSearch, typeFilter, visiblePoolJobs])
 
   const appliedCount = Object.keys(appliedJobs).length
+  const profileInitial = (profile?.fullName || profile?.username || 'U').trim().charAt(0).toUpperCase() || 'U'
+  const statusPillVisible = Boolean(runStatus?.id && dismissedRunStatusId !== runStatus.id)
+  const runStatusLabel =
+    runStatus?.status === 'queued'
+      ? 'Queued'
+      : runStatus?.status === 'running'
+        ? 'Running'
+        : runStatus?.status === 'completed'
+          ? 'Completed'
+          : runStatus?.status === 'failed'
+            ? 'Failed'
+            : ''
+  const runStatusDetail =
+    runStatus?.status === 'failed'
+      ? runStatus.error || 'Run failed'
+      : runStatus?.status === 'completed'
+        ? 'Jobs updated'
+        : runStatus?.status === 'running'
+          ? 'Pulling jobs...'
+          : runStatus?.status === 'queued'
+            ? 'Waiting in queue'
+            : ''
   const sourceCounts = useMemo(() => {
     const counts = { linkedin: 0, startups: 0, funded: 0, stealth: 0 }
-    for (const job of allJobs) {
+    for (const job of visiblePoolJobs) {
       if (job.sourceType === 'linkedin') counts.linkedin += 1
       if (job.sourceType === 'startups') counts.startups += 1
       if (job.sourceType === 'funded') counts.funded += 1
       if (job.sourceType === 'stealth') counts.stealth += 1
     }
     return counts
-  }, [allJobs])
+  }, [visiblePoolJobs])
 
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
 
@@ -454,6 +588,38 @@ export default function Dashboard() {
       await fetch('/api/auth/logout', { method: 'POST' })
     } finally {
       await router.push('/login')
+    }
+  }
+
+  const changePassword = async () => {
+    setPasswordError('')
+    if (!currentPassword || !newPassword) {
+      setPasswordError('Enter both current and new password.')
+      return
+    }
+    if (newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters.')
+      return
+    }
+    setPasswordSaving(true)
+    try {
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      })
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string }
+        setPasswordError(payload.error || 'Failed to update password')
+        return
+      }
+      setShowPasswordModal(false)
+      setCurrentPassword('')
+      setNewPassword('')
+    } catch {
+      setPasswordError('Failed to update password')
+    } finally {
+      setPasswordSaving(false)
     }
   }
 
@@ -478,6 +644,43 @@ export default function Dashboard() {
     if (payload.jobs) setAppliedJobs(payload.jobs)
   }
 
+  const updateAppliedStatus = async (job: NormalizedJob, status: string) => {
+    const jobKey = getJobKey(job)
+    if (!appliedJobs[jobKey]) return
+
+    const response = await fetch('/api/applied', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jobKey,
+        title: job.title,
+        company: job.company,
+        link: job.link,
+        sourceDate: selectedDate,
+        applied: true,
+        status,
+      }),
+    })
+
+    const payload = (await response.json()) as { jobs?: Record<string, AppliedJob> }
+    if (payload.jobs) setAppliedJobs(payload.jobs)
+  }
+
+  const removeApplied = async (job: NormalizedJob) => {
+    const jobKey = getJobKey(job)
+    const response = await fetch('/api/applied', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jobKey,
+        applied: false,
+      }),
+    })
+
+    const payload = (await response.json()) as { jobs?: Record<string, AppliedJob> }
+    if (payload.jobs) setAppliedJobs(payload.jobs)
+  }
+
   return (
     <div className="apple-shell min-h-screen text-[var(--apple-text)]">
       <header className="sticky top-0 z-40 border-b border-[var(--apple-border)] bg-[var(--apple-nav)]/95 backdrop-blur-xl">
@@ -486,6 +689,23 @@ export default function Dashboard() {
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--apple-text-muted)]">Job Hunter Pro</p>
             </div>
+          </div>
+          <div className="header-status-slot">
+            {statusPillVisible && runStatus ? (
+              <div className={`run-status-pill ${runStatus.status}`}>
+                <span className="run-status-dot" />
+                <span className="run-status-text">{runStatusLabel}</span>
+                {runStatusDetail ? <span className="run-status-subtext">{runStatusDetail}</span> : null}
+                <button
+                  type="button"
+                  className="run-status-close"
+                  aria-label="Close run status"
+                  onClick={() => setDismissedRunStatusId(runStatus.id)}
+                >
+                  <XMarkIcon className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : null}
           </div>
           <div className="flex items-center gap-2">
             <div className="run-strip">
@@ -522,27 +742,62 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={toggleTheme}
-              className={`theme-toggle apple-input h-10 rounded-xl px-4 text-sm font-semibold uppercase tracking-[0.08em] inline-flex items-center gap-2 ${theme === 'dark' ? 'theme-toggle-dark' : ''}`}
+              className={`theme-toggle icon-circle-btn apple-input ${theme === 'dark' ? 'theme-toggle-dark' : ''}`}
               aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
             >
-              {theme === 'dark' ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
-              {theme === 'dark' ? 'Light' : 'Dark'}
+              {theme === 'dark' ? <MoonIcon className="h-4 w-4" /> : <SunIcon className="h-4 w-4" />}
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                void logout()
-              }}
-              className="apple-input h-10 rounded-xl px-4 text-sm font-semibold uppercase tracking-[0.08em] inline-flex items-center"
-              aria-label="Logout"
-            >
-              Logout
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setProfileMenuOpen((v) => !v)}
+                className="icon-circle-btn logout-btn apple-input"
+                aria-label="Profile menu"
+              >
+                <span className="text-sm font-semibold leading-none">{profileInitial}</span>
+              </button>
+              {profileMenuOpen && (
+                <div className="profile-menu">
+                  <p className="profile-name">{profile?.fullName || profile?.username || 'User'}</p>
+                  {profile?.email ? <p className="profile-username">{profile.email}</p> : null}
+                  <button
+                    type="button"
+                    className="profile-action"
+                    onClick={() => {
+                      setProfileMenuOpen(false)
+                      void router.push('/settings')
+                    }}
+                  >
+                    ⚙ Settings
+                  </button>
+                  <button
+                    type="button"
+                    className="profile-action"
+                    onClick={() => {
+                      setProfileMenuOpen(false)
+                      setShowPasswordModal(true)
+                    }}
+                  >
+                    Change Password
+                  </button>
+                  <button
+                    type="button"
+                    className="profile-action danger"
+                    onClick={() => {
+                      setProfileMenuOpen(false)
+                      void logout()
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="w-full px-3 pb-4 pt-3 sm:px-6">
+      <main className="flex min-h-[calc(100vh-54px)] w-full flex-col px-3 pb-4 pt-3 sm:px-6">
         <section className="compact-panel">
           <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
             <input
@@ -603,13 +858,13 @@ export default function Dashboard() {
                 </button>
               </div>
               <button type="button" className={`source-tab source-tab-all ${sourceTab === 'all' ? 'active' : ''}`} onClick={() => setSourceTab('all')}>
-                All {allJobs.length}
+                All {visiblePoolJobs.length}
               </button>
             </div>
           </div>
         </section>
 
-        <section className="mt-3">
+        <section className="mt-3 flex-1 min-h-0">
           <div className="roles-shell">
             <div className="roles-list">
               {filteredJobs.map((job, index) => (
@@ -637,16 +892,40 @@ export default function Dashboard() {
                       {timeAgo(job.postedAt)} | {job.applicants || 0} applicants
                     </p>
                     <div className="flex gap-2">
-                      <button
-                        type="button"
-                        className={`action-pill ${appliedJobs[getJobKey(job)] ? 'applied' : 'secondary'}`}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          void toggleApplied(job)
-                        }}
-                      >
-                        {appliedJobs[getJobKey(job)] ? 'Applied' : 'Mark applied'}
-                      </button>
+                      {!appliedJobs[getJobKey(job)] ? (
+                        <button
+                          type="button"
+                          className="action-pill secondary"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            void toggleApplied(job)
+                          }}
+                        >
+                          Mark applied
+                        </button>
+                      ) : appliedOnly ? (
+                        <>
+                          <CustomSelect
+                            value={appliedJobs[getJobKey(job)]?.status || 'applied'}
+                            options={appliedStatusOptions}
+                            onChange={(value) => {
+                              void updateAppliedStatus(job, value)
+                            }}
+                            ariaLabel="Applied status"
+                            className="applied-status-select"
+                          />
+                          <button
+                            type="button"
+                            className="action-pill secondary delete-pill"
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              void removeApplied(job)
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </>
+                      ) : null}
                       <button type="button" className="action-pill bg-blue-600/20 text-blue-400 border-blue-500/30" onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }}>
                         Get Outreach
                       </button>
@@ -677,6 +956,54 @@ export default function Dashboard() {
       </main>
 
       {selectedJob && <JobDetailPanel job={selectedJob} onClose={() => setSelectedJob(null)} />}
+
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-[var(--apple-border)] bg-[var(--apple-surface)] p-5">
+            <p className="text-lg font-semibold">Change Password</p>
+            <div className="mt-4 space-y-3">
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+                placeholder="Current password"
+                className="apple-input h-10 w-full rounded-xl px-3 text-sm"
+              />
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                placeholder="New password"
+                className="apple-input h-10 w-full rounded-xl px-3 text-sm"
+              />
+              {passwordError && <p className="text-xs font-semibold text-[var(--apple-error)]">{passwordError}</p>}
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                className="action-pill secondary"
+                onClick={() => {
+                  setShowPasswordModal(false)
+                  setPasswordError('')
+                }}
+              >
+                Cancel
+              </button>
+              <button type="button" className="action-pill" disabled={passwordSaving} onClick={() => void changePassword()}>
+                {passwordSaving ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+
+const parseDashboardDays = (allData: unknown): DashboardDay[] =>
+  toArray<DashboardDay>(allData).map((day) => ({
+    date: toStringValue(day.date),
+    jobs: toArray<JobRecord>(day.jobs),
+    funded: toArray<Record<string, unknown>>(day.funded),
+    stealth: toArray<Record<string, unknown>>(day.stealth),
+  }))

@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { destroySession } from '../../../lib/authSession'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -7,6 +6,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ ok: false, error: 'Method not allowed' })
   }
 
-  await destroySession(req, res)
-  return res.status(200).json({ ok: true })
+  return res.status(410).json({
+    ok: false,
+    error: 'Verification is handled by Supabase email link. Please verify from your inbox and sign in.',
+  })
 }

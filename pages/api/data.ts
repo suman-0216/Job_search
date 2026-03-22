@@ -1,60 +1,43 @@
-import fs from 'fs'
-import path from 'path'
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { getSessionUser } from '../../lib/authSession'
+import { getSupabaseAdmin, isSupabaseConfigured } from '../../lib/supabaseAdmin'
 
 const DEFAULT_LATEST_JOBS_TIME = 5
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (!isSupabaseConfigured()) {
+    return res.status(500).json({ error: 'Supabase env is not configured' })
+  }
+
+  const user = await getSessionUser(req)
+  if (!user) return res.status(401).json({ error: 'Unauthorized' })
+
+  const latestWindowDays = Number.parseInt(process.env.LATEST_JOBS_TIME || `${DEFAULT_LATEST_JOBS_TIME}`, 10) || DEFAULT_LATEST_JOBS_TIME
+
   try {
-    const dataDir = path.join(process.cwd(), 'data')
-    console.log("Checking data directory:", dataDir)
-    const latestWindowDays = Number.parseInt(process.env.LATEST_JOBS_TIME || `${DEFAULT_LATEST_JOBS_TIME}`, 10) || DEFAULT_LATEST_JOBS_TIME
+    const supabase = getSupabaseAdmin()
+    const { data, error } = await supabase
+      .from('job_snapshots')
+      .select('snapshot_date,scraped_at,timestamp,jobs,funded,stealth,source_stats')
+      .order('snapshot_date', { ascending: false })
+      .limit(latestWindowDays)
 
-    if (!fs.existsSync(dataDir)) {
-      console.log("Data directory does not exist")
-      return res.status(200).json({ days: [], latestWindowDays })
-    }
+    if (error) throw new Error(error.message)
 
-    const files = fs
-      .readdirSync(dataDir)
-      .filter((f) => f.endsWith('.json') && f !== 'applied_jobs.json')
-      .sort()
-      .reverse()
-      .slice(0, latestWindowDays)
-    console.log("Found files:", files)
+    const days = (data || []).map((row) => ({
+      date: row.snapshot_date,
+      scrapedAt: row.scraped_at,
+      timestamp: row.timestamp,
+      jobs: Array.isArray(row.jobs) ? row.jobs : [],
+      funded: Array.isArray(row.funded) ? row.funded : [],
+      stealth: Array.isArray(row.stealth) ? row.stealth : [],
+      source_stats: row.source_stats || {},
+    }))
 
-    const allData = files.map(f => {
-      const filePath = path.join(dataDir, f)
-      const content = fs.readFileSync(filePath, 'utf-8')
-      try {
-        const parsed = JSON.parse(content)
-        const fileDate = f.replace('.json', '').replace('jobs_', '').slice(0, 10)
-
-        // If it's a raw array of jobs, wrap it in a dashboard day object
-        if (Array.isArray(parsed)) {
-          return {
-            date: fileDate,
-            jobs: parsed,
-            funded: [],
-            stealth: []
-          }
-        }
-        return {
-          ...parsed,
-          date: parsed.date || fileDate,
-          jobs: Array.isArray(parsed.jobs) ? parsed.jobs : [],
-          funded: Array.isArray(parsed.funded) ? parsed.funded : (Array.isArray(parsed.funded_startups) ? parsed.funded_startups : []),
-          stealth: Array.isArray(parsed.stealth) ? parsed.stealth : (Array.isArray(parsed.stealth_startups) ? parsed.stealth_startups : []),
-        }
-      } catch (e) {
-        console.error(`Failed to parse ${f}:`, e)
-        return null
-      }
-    }).filter(Boolean)
-
-    res.status(200).json({ days: allData, latestWindowDays })
+    return res.status(200).json({ days, latestWindowDays })
   } catch (error) {
-    console.error("API error:", error)
-    res.status(500).json({ error: 'Failed to read data' })
+    console.error('Data API error:', error)
+    return res.status(500).json({ error: 'Failed to read data from Supabase' })
   }
 }
+

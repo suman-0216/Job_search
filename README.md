@@ -5,9 +5,11 @@ Next.js + TypeScript dashboard for AI job tracking and outreach.
 ## Project Structure
 
 - `pages/`: Next.js Pages Router routes (`index`, `login`, `api/data`, `_app`)
-- `components/`: Shared React components (`JobDetailPanel`, `ThemeSwitcher`)
+- `components/`: Shared React components (`JobDetailPanel`, `CustomSelect`)
 - `styles/`: Global styling (`globals.css`)
-- `data/`: JSON job snapshots used by the dashboard API
+- `data/`: local JSON snapshot cache used by fetch/clean/sync scripts
+- `supabase/`: database schema for production storage
+- `lib/`: shared auth/supabase/business logic modules
 - `scripts/`: Data fetch and cleanup automation scripts
 - `.github/workflows/`: CI and scheduled data update workflows
 
@@ -58,19 +60,27 @@ These are also reflected in `vercel.json`.
 
 If CI is green, Vercel deployment should be stable for the same commit.
 
-## Optional Environment Variables
+## Environment Variables
 
-For login page credentials:
+Core production:
 
-- `USERNAME`
-- `PASSWORD`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY` (service role/secret key, not publishable key)
 
-For dashboard windows/retention:
+Default bootstrap login user:
 
-- `LATEST_JOBS_TIME` (default: `5`)
-- `APPLIED_JOBS_TIME` (default: `30`)
+- `USERNAME` (default `suman`)
+- `PASSWORD` (default `sumansuman`)
+- `FULL_NAME` (default `Suman`)
+- `USER_EMAIL` (default `${USERNAME}@local.app`)
 
-For scheduled job-fetch workflows:
+Retention/window:
 
-- `APIFY_TOKEN`
-- `GOOGLE_API_KEY`
+- `LATEST_JOBS_TIME` (default `5`)
+- `APPLIED_JOBS_TIME` (default `30`)
+- `CROSS_DAY_DEDUPE_DAYS` (default `14`)
+
+Scraper:
+
+- `APIFY_TOKEN` (required for fetch)
+- `GOOGLE_API_KEY` (optional for AI skill enrichment)

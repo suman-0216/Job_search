@@ -1,105 +1,116 @@
-import fs from 'fs'
-import path from 'path'
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { getSessionUser } from '../../lib/authSession'
+import { getSupabaseAdmin, isSupabaseConfigured } from '../../lib/supabaseAdmin'
 
-interface AppliedJob {
-  jobKey: string
+const DEFAULT_APPLIED_JOBS_TIME = 30
+
+interface AppliedJobRow {
+  job_key: string
   title: string
   company: string
   link: string
-  sourceDate: string
-  appliedAt: string
-  lastSeenAt: string
+  source_date: string | null
+  applied_at: string
+  last_seen_at: string
+  status: string
 }
 
-interface AppliedStore {
-  jobs: Record<string, AppliedJob>
+const normalizeJobs = (rows: AppliedJobRow[]) =>
+  rows.reduce<Record<string, unknown>>((acc, row) => {
+    acc[row.job_key] = {
+      jobKey: row.job_key,
+      title: row.title,
+      company: row.company,
+      link: row.link,
+      sourceDate: row.source_date || '',
+      appliedAt: row.applied_at,
+      lastSeenAt: row.last_seen_at,
+      status: row.status || 'applied',
+    }
+    return acc
+  }, {})
+
+async function fetchAppliedJobs(userId: string) {
+  const supabase = getSupabaseAdmin()
+  const retentionDays = Number.parseInt(process.env.APPLIED_JOBS_TIME || `${DEFAULT_APPLIED_JOBS_TIME}`, 10) || DEFAULT_APPLIED_JOBS_TIME
+  const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000).toISOString()
+
+  await supabase.from('applied_jobs').delete().eq('user_id', userId).lt('applied_at', cutoff)
+
+  const { data, error } = await supabase
+    .from('applied_jobs')
+    .select('job_key,title,company,link,source_date,applied_at,last_seen_at,status')
+    .eq('user_id', userId)
+    .order('last_seen_at', { ascending: false })
+
+  if (error) throw new Error(`Failed to load applied jobs: ${error.message}`)
+  return normalizeJobs((data || []) as AppliedJobRow[])
 }
 
-const APPLIED_FILE = path.join(process.cwd(), 'data', 'applied_jobs.json')
-const DEFAULT_APPLIED_JOBS_TIME = 30
-const DAY_MS = 1000 * 60 * 60 * 24
-
-const ensureStore = (): AppliedStore => {
-  const dir = path.dirname(APPLIED_FILE)
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-
-  if (!fs.existsSync(APPLIED_FILE)) {
-    const empty: AppliedStore = { jobs: {} }
-    fs.writeFileSync(APPLIED_FILE, JSON.stringify(empty, null, 2), 'utf-8')
-    return empty
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (!isSupabaseConfigured()) {
+    return res.status(500).json({ error: 'Supabase env is not configured' })
   }
 
-  try {
-    const raw = fs.readFileSync(APPLIED_FILE, 'utf-8')
-    const parsed = JSON.parse(raw) as AppliedStore
-    return parsed?.jobs ? parsed : { jobs: {} }
-  } catch {
-    return { jobs: {} }
+  const sessionUser = await getSessionUser(req)
+  if (!sessionUser) return res.status(401).json({ error: 'Unauthorized' })
+  const userId = sessionUser.id
+
+  if (req.method === 'GET') {
+    try {
+      const jobs = await fetchAppliedJobs(userId)
+      return res.status(200).json({ jobs })
+    } catch (error) {
+      console.error('Applied API GET error:', error)
+      return res.status(500).json({ error: 'Failed to load applied jobs' })
+    }
   }
-}
 
-const saveStore = (store: AppliedStore) => {
-  fs.writeFileSync(APPLIED_FILE, JSON.stringify(store, null, 2), 'utf-8')
-}
-
-const pruneAppliedStore = (store: AppliedStore, retentionDays: number): AppliedStore => {
-  const now = new Date()
-  const jobs = Object.fromEntries(
-    Object.entries(store.jobs).filter(([, value]) => {
-      const baseDate = new Date(value.appliedAt || value.lastSeenAt || now.toISOString())
-      const age = Math.floor((now.getTime() - baseDate.getTime()) / DAY_MS)
-      return age <= retentionDays
-    }),
-  )
-  return { jobs }
-}
-
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    const retentionDays = Number.parseInt(process.env.APPLIED_JOBS_TIME || `${DEFAULT_APPLIED_JOBS_TIME}`, 10) || DEFAULT_APPLIED_JOBS_TIME
-    const store = pruneAppliedStore(ensureStore(), retentionDays)
-    saveStore(store)
-
-    if (req.method === 'GET') {
-      return res.status(200).json({ jobs: store.jobs })
+  if (req.method === 'POST') {
+    const { jobKey, title, company, link, sourceDate, applied, status } = req.body as {
+      jobKey?: string
+      title?: string
+      company?: string
+      link?: string
+      sourceDate?: string
+      applied?: boolean
+      status?: string
     }
 
-    if (req.method === 'POST') {
-      const { jobKey, title, company, link, sourceDate, applied } = req.body as {
-        jobKey?: string
-        title?: string
-        company?: string
-        link?: string
-        sourceDate?: string
-        applied?: boolean
-      }
+    if (!jobKey) return res.status(400).json({ error: 'jobKey is required' })
 
-      if (!jobKey) return res.status(400).json({ error: 'jobKey is required' })
-
+    try {
+      const supabase = getSupabaseAdmin()
       if (applied) {
         const now = new Date().toISOString()
-        store.jobs[jobKey] = {
-          jobKey,
-          title: title || '',
-          company: company || '',
-          link: link || '',
-          sourceDate: sourceDate || '',
-          appliedAt: store.jobs[jobKey]?.appliedAt || now,
-          lastSeenAt: now,
-        }
+        const { error } = await supabase.from('applied_jobs').upsert(
+          {
+            user_id: userId,
+            job_key: jobKey,
+            title: title || '',
+            company: company || '',
+            link: link || '',
+            source_date: sourceDate || null,
+            last_seen_at: now,
+            status: status || 'applied',
+          },
+          { onConflict: 'user_id,job_key' },
+        )
+        if (error) throw new Error(error.message)
       } else {
-        delete store.jobs[jobKey]
+        const { error } = await supabase.from('applied_jobs').delete().eq('user_id', userId).eq('job_key', jobKey)
+        if (error) throw new Error(error.message)
       }
 
-      saveStore(store)
-      return res.status(200).json({ jobs: store.jobs })
+      const jobs = await fetchAppliedJobs(userId)
+      return res.status(200).json({ jobs })
+    } catch (error) {
+      console.error('Applied API POST error:', error)
+      return res.status(500).json({ error: 'Failed to update applied jobs' })
     }
-
-    res.setHeader('Allow', 'GET, POST')
-    return res.status(405).json({ error: 'Method not allowed' })
-  } catch (error) {
-    console.error('Applied API error:', error)
-    return res.status(500).json({ error: 'Failed to process applied jobs' })
   }
+
+  res.setHeader('Allow', 'GET, POST')
+  return res.status(405).json({ error: 'Method not allowed' })
 }
+

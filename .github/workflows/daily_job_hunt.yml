@@ -2,9 +2,10 @@ name: Daily Job Hunt
 
 on:
   schedule:
-    - cron: '30 14 * * *' # 6:30 AM PST
-    - cron: '30 17 * * *' # 9:30 AM PST
-    - cron: '0 20 * * *'  # 12:00 PM PST
+    # Cron schedules are UTC.
+    - cron: '30 14 * * *' # 6:30 AM PT
+    - cron: '0 17 * * *'  # 9:00 AM PT
+    - cron: '0 20 * * *'  # 12:00 PM PT
   workflow_dispatch: # Allows manual triggering from the GitHub UI
 
 jobs:
@@ -34,12 +35,24 @@ jobs:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           GEMINI_MODEL: 'gemini-1.5-flash-preview'
-        # Continue even if this step fails, so we can still try to clean old data
-        continue-on-error: true
-        run: node scripts/fetch_jobs.js
+          APIFY_DATASET_LIMIT: "500"
+          APIFY_TIMEOUT_SECS: "480"
+          APIFY_POLL_INTERVAL_MS: "4000"
+          GOOGLE_ENRICH_LIMIT: "120"
+          SKILL_DELAY_MS: "120"
+        run: npm run fetch
 
       - name: Clean up old data
-        run: node scripts/clean_old_data.js
+        env:
+          LATEST_JOBS_TIME: ${{ vars.LATEST_JOBS_TIME || '5' }}
+          APPLIED_JOBS_TIME: ${{ vars.APPLIED_JOBS_TIME || '30' }}
+        run: npm run clean
+
+      - name: Sync snapshots to Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run sync-supabase
 
       - name: Commit and push updated data
         run: |

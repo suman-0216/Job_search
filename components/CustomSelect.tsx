@@ -38,7 +38,10 @@ export default function CustomSelect({ value, options, onChange, ariaLabel, clas
         aria-expanded={open}
         aria-label={ariaLabel}
         className="apple-input custom-select-trigger h-10 rounded-xl px-3 text-sm"
-        onClick={() => setOpen((current) => !current)}
+        onClick={(event) => {
+          event.stopPropagation()
+          setOpen((current) => !current)
+        }}
       >
         <span>{selected?.label || ''}</span>
         <ChevronDownIcon className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -54,7 +57,8 @@ export default function CustomSelect({ value, options, onChange, ariaLabel, clas
                   role="option"
                   aria-selected={option.value === value}
                   className={`custom-select-option ${option.value === value ? 'active' : ''}`}
-                  onClick={() => {
+                  onClick={(event) => {
+                    event.stopPropagation()
                     onChange(option.value)
                     setOpen(false)
                   }}
