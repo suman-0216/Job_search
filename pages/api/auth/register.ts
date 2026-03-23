@@ -3,6 +3,8 @@ import { getSupabaseAdmin, getSupabaseAuthClient, isSupabaseAuthConfigured, isSu
 
 const isUniqueConflict = (message: string): boolean =>
   /duplicate key value|unique constraint|already in use/i.test(message)
+const isAlreadyRegistered = (message: string): boolean =>
+  /already registered|user already|email exists/i.test(message)
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -46,10 +48,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (usernameExists.error) throw new Error(`Failed to check username: ${usernameExists.error.message}`)
     if (usernameExists.data) return res.status(409).json({ ok: false, error: 'Username already in use' })
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_APP_URL || 'http://localhost:3000'
+
     const { data: signUpData, error: signUpError } = await authClient.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: appUrl,
         data: {
           username,
           full_name: fullName || username,
@@ -58,6 +63,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
     if (signUpError) {
       const message = signUpError.message || 'Registration failed'
+      if (isAlreadyRegistered(message)) {
+        const { error: resendError } = await authClient.auth.resend({
+          type: 'signup',
+          email,
+          options: {
+            emailRedirectTo: appUrl,
+          },
+        })
+        if (!resendError) {
+          return res.status(200).json({
+            ok: true,
+            requiresVerification: true,
+            email,
+            message: 'Account already exists. Verification email has been resent. Check inbox/spam.',
+          })
+        }
+      }
       return res.status(isUniqueConflict(message) ? 409 : 400).json({ ok: false, error: message })
     }
 

@@ -13,6 +13,8 @@ export default function Login() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [verificationEmail, setVerificationEmail] = useState('')
   const router = useRouter()
 
   useEffect(() => {
@@ -113,13 +115,17 @@ export default function Login() {
       })
 
       if (!response.ok) {
-        const payload = (await response.json()) as { error?: string }
+        const payload = (await response.json()) as { error?: string; requiresVerification?: boolean; email?: string }
+        if (payload.requiresVerification && payload.email) {
+          setVerificationEmail(payload.email)
+        }
         setError(payload.error || (mode === 'login' ? 'Invalid credentials' : 'Registration failed'))
         return
       }
 
-      const payload = (await response.json()) as { message?: string }
+      const payload = (await response.json()) as { message?: string; email?: string }
       if (mode === 'register') {
+        if (payload.email) setVerificationEmail(payload.email)
         setNotice(payload.message || 'Account created. Verify your email from inbox and then sign in.')
         setMode('login')
         return
@@ -130,6 +136,35 @@ export default function Login() {
       setError('Login failed. Please try again.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const resendVerification = async () => {
+    const emailToUse = (verificationEmail || email || username).trim().toLowerCase()
+    if (!emailToUse || !emailToUse.includes('@')) {
+      setError('Enter your email to resend verification.')
+      return
+    }
+    setError('')
+    setNotice('')
+    setResending(true)
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailToUse }),
+      })
+      const payload = (await response.json()) as { message?: string; error?: string }
+      if (!response.ok) {
+        setError(payload.error || 'Failed to resend verification email')
+        return
+      }
+      setNotice(payload.message || 'Verification email sent.')
+      setVerificationEmail(emailToUse)
+    } catch {
+      setError('Failed to resend verification email')
+    } finally {
+      setResending(false)
     }
   }
 
@@ -222,6 +257,17 @@ export default function Login() {
             <div className="login-error">
               {error}
             </div>
+          )}
+
+          {mode === 'login' && verificationEmail && (
+            <button
+              type="button"
+              onClick={() => void resendVerification()}
+              disabled={resending}
+              className="action-pill secondary w-full justify-center"
+            >
+              {resending ? 'Sending...' : 'Resend verification email'}
+            </button>
           )}
 
           <button type="submit" disabled={loading} className="apple-btn-primary login-submit disabled:opacity-60">

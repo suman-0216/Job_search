@@ -105,7 +105,6 @@ export default function SettingsPanel({ onClose, className }: SettingsPanelProps
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
-  const [hasEdited, setHasEdited] = useState(false)
   const [roleInput, setRoleInput] = useState('')
   const [runTimeInput, setRunTimeInput] = useState('')
   const [locationInput, setLocationInput] = useState('')
@@ -208,10 +207,6 @@ export default function SettingsPanel({ onClose, className }: SettingsPanelProps
   }
 
   const persistSettings = useCallback(async (nextSettings: UserSettings, silent = false) => {
-    if (!nextSettings.llmModel.trim()) {
-      if (!silent) setMessage('Please choose a model or enter a custom model name.')
-      return false
-    }
     setSaving(true)
     try {
       const response = await fetch('/api/user/settings', {
@@ -231,7 +226,7 @@ export default function SettingsPanel({ onClose, className }: SettingsPanelProps
         if (silent) setSaveState('error')
         return false
       }
-      if (silent && hasEdited) setSaveState('saved')
+      if (silent) setSaveState('saved')
       return true
     } catch {
       if (!silent) setMessage('Failed to save settings')
@@ -240,7 +235,7 @@ export default function SettingsPanel({ onClose, className }: SettingsPanelProps
     } finally {
       setSaving(false)
     }
-  }, [hasEdited])
+  }, [])
 
   const validateBeforeTrigger = (value: UserSettings): string | null => {
     if (!value.apifyToken.trim()) return 'Apify key is required before triggering.'
@@ -261,7 +256,6 @@ export default function SettingsPanel({ onClose, className }: SettingsPanelProps
       initialHydrationCompleteRef.current = true
       return
     }
-    setHasEdited(true)
     setSaveState('saving')
     if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current)
     autosaveTimerRef.current = setTimeout(() => {

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import mammoth from 'mammoth'
-import * as pdfParseModule from 'pdf-parse'
+import { PDFParse } from 'pdf-parse'
 import { getSessionUser } from '../../../lib/authSession'
 import { getSupabaseAdmin, isSupabaseConfigured } from '../../../lib/supabaseAdmin'
 
@@ -32,11 +32,13 @@ const normalizeExtractedText = (raw: string): string =>
     .trim()
 
 const parsePdfText = async (fileBuffer: Buffer): Promise<string> => {
-  const parser = ((pdfParseModule as unknown as { default?: unknown }).default || pdfParseModule) as (
-    buffer: Buffer,
-  ) => Promise<{ text?: string }>
-  const parsed = await parser(fileBuffer)
-  return normalizeExtractedText(parsed.text || '')
+  const parser = new PDFParse({ data: new Uint8Array(fileBuffer) })
+  try {
+    const parsed = await parser.getText()
+    return normalizeExtractedText(parsed.text || '')
+  } finally {
+    await parser.destroy().catch(() => undefined)
+  }
 }
 
 const extractTextFromResume = async (fileBuffer: Buffer, fileName: string, mimeType: string): Promise<string> => {

@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getSessionUser } from '../../../lib/authSession'
 import { getSupabaseAdmin, isSupabaseConfigured } from '../../../lib/supabaseAdmin'
-import { validateLlmProviderModelAndKey } from '../../../lib/llmValidation'
 
 const DEFAULT_SETTINGS = {
   apifyToken: '',
@@ -143,13 +142,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ? req.body.sourceConfig
           : DEFAULT_SETTINGS.sourceConfig,
     }
-
-    const llmValidationError = validateLlmProviderModelAndKey({
-      provider: payload.llm_provider,
-      model: payload.llm_model,
-      apiKey: payload.llm_api_key,
-    })
-    if (llmValidationError) return res.status(400).json({ error: llmValidationError })
 
     const { error } = await supabase.from('user_settings').upsert(payload, { onConflict: 'user_id' })
     if (error) return res.status(500).json({ error: error.message })
