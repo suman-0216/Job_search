@@ -77,9 +77,21 @@ create table if not exists public.user_settings (
   experience_min int not null default 0,
   experience_max int not null default 3,
   requirements text not null default '',
+  source_config jsonb not null default '{"linkedin":true,"startups":true,"funded":true,"stealth":true}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint user_settings_llm_provider_check check (llm_provider in ('openai', 'claude', 'gemini'))
+);
+
+create table if not exists public.user_profile_data (
+  user_id uuid primary key references public.app_users(id) on delete cascade,
+  resume_file_name text not null default '',
+  resume_file_mime text not null default '',
+  resume_file_base64 text not null default '',
+  resume_text text not null default '',
+  personal_input text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 create table if not exists public.user_run_requests (
@@ -99,6 +111,7 @@ create index if not exists idx_app_sessions_user_expires on public.app_sessions(
 create index if not exists idx_applied_jobs_user_status on public.applied_jobs(user_id, status);
 create index if not exists idx_job_snapshots_date on public.job_snapshots(snapshot_date desc);
 create index if not exists idx_user_run_requests_user_requested on public.user_run_requests(user_id, requested_at desc);
+create index if not exists idx_user_profile_data_updated on public.user_profile_data(updated_at desc);
 
 create or replace function public.touch_updated_at()
 returns trigger
@@ -128,6 +141,11 @@ for each row execute function public.touch_updated_at();
 drop trigger if exists trg_touch_user_settings on public.user_settings;
 create trigger trg_touch_user_settings
 before update on public.user_settings
+for each row execute function public.touch_updated_at();
+
+drop trigger if exists trg_touch_user_profile_data on public.user_profile_data;
+create trigger trg_touch_user_profile_data
+before update on public.user_profile_data
 for each row execute function public.touch_updated_at();
 
 -- Optional hardening:

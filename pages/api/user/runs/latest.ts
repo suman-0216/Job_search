@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('user_run_requests')
-    .select('id,status,requested_at,started_at,finished_at,error')
+    .select('id,status,requested_at,started_at,finished_at,error,settings_snapshot')
     .eq('user_id', user.id)
     .order('requested_at', { ascending: false })
     .limit(1)
@@ -23,6 +23,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (error) return res.status(500).json({ error: error.message })
   if (!data) return res.status(200).json({ run: null })
+
+  const snapshot = (data.settings_snapshot || {}) as Record<string, unknown>
+  const progress = (snapshot.run_progress || {}) as Record<string, unknown>
+  const logs = Array.isArray(progress.logs) ? progress.logs : []
 
   return res.status(200).json({
     run: {
@@ -32,7 +36,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       startedAt: data.started_at,
       finishedAt: data.finished_at,
       error: data.error,
+      stage: typeof progress.stage === 'string' ? progress.stage : null,
+      percent: typeof progress.percent === 'number' ? progress.percent : null,
+      logs,
     },
   })
 }
-

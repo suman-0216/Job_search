@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CheckIcon, MoonIcon, SunIcon } from '@heroicons/react/24/solid'
 import { ArrowTopRightOnSquareIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useRouter } from 'next/router'
 import JobDetailPanel from '../components/JobDetailPanel'
 import CustomSelect, { SelectOption } from '../components/CustomSelect'
+import SettingsPanel from '../components/SettingsPanel'
 
 type SortMode = 'score' | 'latest' | 'lowCompetition'
 type RunSlot = 'all' | '0630' | '0900' | '1200'
@@ -72,6 +73,9 @@ interface RunRequestStatus {
   startedAt?: string | null
   finishedAt?: string | null
   error?: string | null
+  stage?: string | null
+  percent?: number | null
+  logs?: Array<{ at?: string; stage?: string; message?: string }>
 }
 
 const EMPTY_DAY: DashboardDay = {
@@ -230,6 +234,7 @@ export default function Dashboard() {
   const [appliedOnly, setAppliedOnly] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [profile, setProfile] = useState<{ email: string; username: string; fullName: string } | null>(null)
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -238,6 +243,7 @@ export default function Dashboard() {
   const [runStatus, setRunStatus] = useState<RunRequestStatus | null>(null)
   const [lastRunStatus, setLastRunStatus] = useState<RunRequestStatus['status'] | null>(null)
   const [dismissedRunStatusId, setDismissedRunStatusId] = useState<string | null>(null)
+  const profileMenuRef = useRef<HTMLDivElement | null>(null)
 
   const typeOptions: SelectOption[] = [
     { value: '', label: 'All types' },
@@ -343,6 +349,21 @@ export default function Dashboard() {
   }, [theme])
 
   useEffect(() => {
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!profileMenuOpen) return
+      const target = event.target as Node | null
+      if (profileMenuRef.current && target && !profileMenuRef.current.contains(target)) {
+        setProfileMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+    }
+  }, [profileMenuOpen])
+
+  useEffect(() => {
     let isActive = true
     const pollLatestRun = async () => {
       try {
@@ -402,8 +423,13 @@ export default function Dashboard() {
       const score = normalizeScore(job.startup_score ?? job.score)
       const link = toStringValue(job.link) || '#'
       const linkLower = link.toLowerCase()
+      const sourceText = toStringValue(job.source).toLowerCase()
       const sourceType: Exclude<SourceTab, 'all'> =
-        linkLower.includes('linkedin.com')
+        sourceText.includes('startups')
+          ? 'startups'
+          : sourceText.includes('linkedin')
+            ? 'linkedin'
+            : linkLower.includes('linkedin.com')
           ? 'linkedin'
           : (linkLower.includes('wellfound.com') ||
               linkLower.includes('ycombinator.com') ||
@@ -558,15 +584,23 @@ export default function Dashboard() {
         : runStatus?.status === 'completed'
           ? 'Completed'
           : runStatus?.status === 'failed'
-            ? 'Failed'
+          ? 'Failed'
             : ''
+  const latestRunLogMessage = runStatus?.logs?.length
+    ? runStatus.logs[runStatus.logs.length - 1]?.message || ''
+    : ''
+  const runProgressText =
+    runStatus?.status === 'running' && typeof runStatus?.percent === 'number'
+      ? `${Math.max(0, Math.min(100, Math.round(runStatus.percent)))}%`
+      : ''
+  const runStageText = toStringValue(runStatus?.stage || '').replace(/_/g, ' ')
   const runStatusDetail =
     runStatus?.status === 'failed'
       ? runStatus.error || 'Run failed'
       : runStatus?.status === 'completed'
         ? 'Jobs updated'
         : runStatus?.status === 'running'
-          ? 'Pulling jobs...'
+          ? `${runProgressText ? `${runProgressText} | ` : ''}${runStageText || 'Processing'}${latestRunLogMessage ? ` | ${latestRunLogMessage}` : ''}`
           : runStatus?.status === 'queued'
             ? 'Waiting in queue'
             : ''
@@ -747,7 +781,7 @@ export default function Dashboard() {
             >
               {theme === 'dark' ? <MoonIcon className="h-4 w-4" /> : <SunIcon className="h-4 w-4" />}
             </button>
-            <div className="relative">
+            <div className="relative" ref={profileMenuRef}>
               <button
                 type="button"
                 onClick={() => setProfileMenuOpen((v) => !v)}
@@ -765,10 +799,10 @@ export default function Dashboard() {
                     className="profile-action"
                     onClick={() => {
                       setProfileMenuOpen(false)
-                      void router.push('/settings')
+                      setShowSettingsModal(true)
                     }}
                   >
-                    ⚙ Settings
+                    Settings
                   </button>
                   <button
                     type="button"
@@ -957,6 +991,17 @@ export default function Dashboard() {
 
       {selectedJob && <JobDetailPanel job={selectedJob} onClose={() => setSelectedJob(null)} />}
 
+      {showSettingsModal && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/30 px-4 py-6 backdrop-blur-sm"
+          onClick={() => setShowSettingsModal(false)}
+        >
+          <div onClick={(event) => event.stopPropagation()}>
+            <SettingsPanel onClose={() => setShowSettingsModal(false)} className="settings-dialog-embedded" />
+          </div>
+        </div>
+      )}
+
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-4">
           <div className="w-full max-w-md rounded-2xl border border-[var(--apple-border)] bg-[var(--apple-surface)] p-5">
@@ -1007,3 +1052,4 @@ const parseDashboardDays = (allData: unknown): DashboardDay[] =>
     funded: toArray<Record<string, unknown>>(day.funded),
     stealth: toArray<Record<string, unknown>>(day.stealth),
   }))
+

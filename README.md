@@ -66,6 +66,7 @@ Core production:
 
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY` (service role/secret key, not publishable key)
+- `CRON_SECRET` (required for `/api/jobs/trigger-all` endpoint authorization)
 
 Default bootstrap login user:
 
@@ -84,3 +85,15 @@ Scraper:
 
 - `APIFY_TOKEN` (required for fetch)
 - `GOOGLE_API_KEY` (optional for AI skill enrichment)
+
+User-run queue worker (optional tuning):
+
+- `RUN_TRIGGER_WINDOW_MINUTES` (default `15`)
+- `RUN_WORKER_CONCURRENCY` (default `3`)
+- `RUN_WORKER_MAX_RUNS` (default `20` per dispatch)
+- `USER_RUN_MAX_RESULTS` (default `180`)
+- `USER_RUN_APIFY_TIMEOUT_SECS` (default `360`)
+- `USER_RUN_APIFY_POLL_INTERVAL_MS` (default `4000`)
+- `APIFY_LINKEDIN_ACTOR` (default `curious_coder~linkedin-jobs-scraper`)
+- `USER_RUN_LLM_BATCH_SIZE` (default `5`)
+- `USER_RUN_LLM_TIMEOUT_MS` (default `45000`)

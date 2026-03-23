@@ -1,0 +1,34 @@
+name: User Run Dispatcher
+
+on:
+  schedule:
+    # Every 15 minutes (UTC) to respect per-user run times.
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      force_all_active:
+        description: 'Force enqueue for all active users'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger queue endpoint
+        env:
+          APP_URL: ${{ secrets.VERCEL_APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          FORCE_ALL_ACTIVE: ${{ github.event.inputs.force_all_active }}
+        run: |
+          FORCE_FLAG="false"
+          if [ "$FORCE_ALL_ACTIVE" = "true" ]; then FORCE_FLAG="true"; fi
+          curl -X POST "${APP_URL}/api/jobs/trigger-all?force=${FORCE_FLAG}" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -d '{}' \
+            --fail \
+            --silent \
+            --show-error
+

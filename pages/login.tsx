@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useRouter } from 'next/router'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
 export default function Login() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
@@ -13,6 +14,85 @@ export default function Login() {
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const context = canvas.getContext('2d')
+    if (!context) return
+
+    let animationId = 0
+
+    const particles: Array<{
+      x: number
+      y: number
+      vx: number
+      vy: number
+      radius: number
+      alpha: number
+    }> = []
+
+    const initParticles = (count: number) => {
+      particles.length = 0
+      for (let i = 0; i < count; i += 1) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.18,
+          vy: (Math.random() - 0.5) * 0.18,
+          radius: 0.9 + Math.random() * 1.6,
+          alpha: 0.2 + Math.random() * 0.45,
+        })
+      }
+    }
+
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1
+      const w = window.innerWidth
+      const h = window.innerHeight
+      canvas.width = Math.floor(w * dpr)
+      canvas.height = Math.floor(h * dpr)
+      canvas.style.width = `${w}px`
+      canvas.style.height = `${h}px`
+      context.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+      const count = Math.max(28, Math.min(90, Math.floor((w * h) / 28000)))
+      initParticles(count)
+    }
+
+    const draw = () => {
+      const w = window.innerWidth
+      const h = window.innerHeight
+      context.clearRect(0, 0, w, h)
+
+      for (let i = 0; i < particles.length; i += 1) {
+        const p = particles[i]
+        p.x += p.vx
+        p.y += p.vy
+
+        if (p.x <= -6) p.x = w + 6
+        if (p.x >= w + 6) p.x = -6
+        if (p.y <= -6) p.y = h + 6
+        if (p.y >= h + 6) p.y = -6
+
+        context.beginPath()
+        context.fillStyle = `rgba(41, 151, 255, ${p.alpha})`
+        context.arc(p.x, p.y, p.radius, 0, Math.PI * 2)
+        context.fill()
+      }
+
+      animationId = window.requestAnimationFrame(draw)
+    }
+
+    resize()
+    window.addEventListener('resize', resize)
+    draw()
+
+    return () => {
+      window.removeEventListener('resize', resize)
+      window.cancelAnimationFrame(animationId)
+    }
+  }, [])
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -55,6 +135,7 @@ export default function Login() {
 
   return (
     <div className="login-shell">
+      <canvas ref={canvasRef} className="login-particle-canvas" aria-hidden />
       <div className="login-card">
         <div className="login-head">
           <p className="login-kicker">Career Pipeline</p>

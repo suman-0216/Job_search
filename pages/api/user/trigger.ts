@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getSessionUser } from '../../../lib/authSession'
 import { getSupabaseAdmin, isSupabaseConfigured } from '../../../lib/supabaseAdmin'
+import { validateLlmProviderModelAndKey } from '../../../lib/llmValidation'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -31,6 +32,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .select('*')
     .eq('user_id', user.id)
     .maybeSingle()
+
+  const runTimes = Array.isArray(settings?.run_times) ? settings?.run_times : []
+  const targetRoles = Array.isArray(settings?.target_roles) ? settings?.target_roles : []
+  const targetLocations = Array.isArray(settings?.target_locations) ? settings?.target_locations : []
+  const hasRequiredSettings =
+    Boolean(settings?.apify_token) &&
+    Boolean(settings?.llm_api_key) &&
+    Boolean(settings?.llm_provider) &&
+    Boolean(settings?.llm_model) &&
+    runTimes.length > 0 &&
+    targetRoles.length > 0 &&
+    targetLocations.length > 0 &&
+    Number(settings?.experience_max ?? 0) >= Number(settings?.experience_min ?? 0) &&
+    Boolean(String(settings?.requirements || '').trim())
+
+  if (!hasRequiredSettings) {
+    return res.status(400).json({
+      error:
+        'Complete all settings before trigger: api keys, provider/model, run time, role, location, valid experience range, and additional requirements.',
+    })
+  }
+
+  const llmValidationError = validateLlmProviderModelAndKey({
+    provider: settings?.llm_provider,
+    model: settings?.llm_model,
+    apiKey: settings?.llm_api_key,
+  })
+  if (llmValidationError) {
+    return res.status(400).json({ error: llmValidationError })
+  }
 
   const { data, error } = await supabase
     .from('user_run_requests')
