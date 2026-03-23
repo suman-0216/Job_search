@@ -7,7 +7,7 @@ import CustomSelect, { SelectOption } from '../components/CustomSelect'
 import SettingsPanel from '../components/SettingsPanel'
 
 type SortMode = 'score' | 'latest' | 'lowCompetition'
-type RunSlot = 'all' | '0630' | '0900' | '1200'
+type RunSlot = 'all' | string
 type SourceTab = 'all' | 'linkedin' | 'startups' | 'funded' | 'stealth'
 
 interface JobRecord {
@@ -195,8 +195,32 @@ const getPastDates = (count: number): string[] => {
   })
 }
 
-const getRunSlotForTimestamp = (rawDate: string): Exclude<RunSlot, 'all'> | null => {
+const isValidRunTime = (value: string): boolean => /^([01]\d|2[0-3]):([0-5]\d)$/.test(value)
+
+const normalizeRunTimes = (value: unknown): string[] =>
+  Array.isArray(value)
+    ? value
+        .map((item) => toStringValue(item))
+        .filter((item) => isValidRunTime(item))
+        .slice(0, 3)
+    : []
+
+const formatRunTimeLabel = (runTime: string): string => {
+  if (!isValidRunTime(runTime)) return runTime
+  const [hourRaw, minuteRaw] = runTime.split(':').map((part) => Number(part))
+  const hour12 = hourRaw % 12 === 0 ? 12 : hourRaw % 12
+  const suffix = hourRaw >= 12 ? 'PM' : 'AM'
+  return `${hour12}:${String(minuteRaw).padStart(2, '0')} ${suffix}`
+}
+
+const toRunMinutes = (runTime: string): number => {
+  const [hour, minute] = runTime.split(':').map((part) => Number(part))
+  return hour * 60 + minute
+}
+
+const getRunSlotForTimestamp = (rawDate: string, runTimes: string[]): string | null => {
   if (!rawDate) return null
+  if (runTimes.length === 0) return null
   const parsed = new Date(rawDate)
   if (Number.isNaN(parsed.getTime())) return null
 
@@ -209,11 +233,22 @@ const getRunSlotForTimestamp = (rawDate: string): Exclude<RunSlot, 'all'> | null
 
   const hour = Number(parts.find((part) => part.type === 'hour')?.value || '0')
   const minute = Number(parts.find((part) => part.type === 'minute')?.value || '0')
-  const total = hour * 60 + minute
+  const currentMinutes = hour * 60 + minute
 
-  if (total <= 465) return '0630'
-  if (total <= 630) return '0900'
-  return '1200'
+  let bestMatch: string | null = null
+  let bestDiff = Number.POSITIVE_INFINITY
+  for (const runTime of runTimes) {
+    if (!isValidRunTime(runTime)) continue
+    const target = toRunMinutes(runTime)
+    const diff = Math.abs(currentMinutes - target)
+    const wrapDiff = Math.min(diff, 24 * 60 - diff)
+    if (wrapDiff < bestDiff) {
+      bestDiff = wrapDiff
+      bestMatch = runTime
+    }
+  }
+
+  return bestMatch
 }
 
 export default function Dashboard() {
@@ -228,6 +263,7 @@ export default function Dashboard() {
   const [typeFilter, setTypeFilter] = useState('')
   const [sortMode, setSortMode] = useState<SortMode>('score')
   const [selectedRun, setSelectedRun] = useState<RunSlot>('all')
+  const [runTimeOptions, setRunTimeOptions] = useState<string[]>(['06:30', '09:00', '12:00'])
   const [sourceTab, setSourceTab] = useState<SourceTab>('all')
   const [pastFiveDates, setPastFiveDates] = useState<string[]>([])
   const [appliedJobs, setAppliedJobs] = useState<Record<string, AppliedJob>>({})
@@ -317,17 +353,26 @@ export default function Dashboard() {
       setTheme(savedTheme)
     }
 
-    Promise.all([fetch('/api/data'), fetch('/api/applied'), fetch('/api/auth/profile'), fetch('/api/user/runs/latest')])
-      .then(async ([dataResponse, appliedResponse, profileResponse, runResponse]) => {
+    Promise.all([
+      fetch('/api/data'),
+      fetch('/api/applied'),
+      fetch('/api/auth/profile'),
+      fetch('/api/user/runs/latest'),
+      fetch('/api/user/settings'),
+    ])
+      .then(async ([dataResponse, appliedResponse, profileResponse, runResponse, settingsResponse]) => {
         const dataPayload = (await dataResponse.json()) as { days?: unknown; latestWindowDays?: number } | unknown
         hydrateDataFromPayload(dataPayload)
         const appliedPayload = (await appliedResponse.json()) as { jobs?: Record<string, AppliedJob> }
         const profilePayload = (await profileResponse.json()) as { email?: string; username?: string; fullName?: string }
         const runPayload = (await runResponse.json()) as { run?: RunRequestStatus | null }
+        const settingsPayload = (await settingsResponse.json()) as { runTimes?: unknown }
+        const userRunTimes = normalizeRunTimes(settingsPayload.runTimes)
 
         setAppliedJobs(appliedPayload.jobs || {})
         setRunStatus(runPayload.run || null)
         setLastRunStatus(runPayload.run?.status || null)
+        if (userRunTimes.length > 0) setRunTimeOptions(userRunTimes)
         if (profilePayload.username) {
           setProfile({
             email: profilePayload.email || '',
@@ -338,6 +383,12 @@ export default function Dashboard() {
       })
       .catch(() => setData([]))
   }, [hydrateDataFromPayload])
+
+  useEffect(() => {
+    if (selectedRun !== 'all' && !runTimeOptions.includes(selectedRun)) {
+      setSelectedRun('all')
+    }
+  }, [runTimeOptions, selectedRun])
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -560,7 +611,7 @@ export default function Dashboard() {
       if (typeFilter && job.employmentType.toLowerCase() !== typeFilter.toLowerCase()) return false
       if (selectedRun !== 'all') {
         if (job.sourceType !== 'linkedin' && job.sourceType !== 'startups') return false
-        const slot = getRunSlotForTimestamp(job.postedAt)
+        const slot = getRunSlotForTimestamp(job.postedAt, runTimeOptions)
         if (slot !== selectedRun) return false
       }
       return true
@@ -571,7 +622,7 @@ export default function Dashboard() {
       if (sortMode === 'lowCompetition') return a.applicants - b.applicants
       return toEpoch(b.postedAt) - toEpoch(a.postedAt)
     })
-  }, [locationSearch, selectedRun, sortMode, sourceTab, titleSearch, typeFilter, visiblePoolJobs])
+  }, [locationSearch, runTimeOptions, selectedRun, sortMode, sourceTab, titleSearch, typeFilter, visiblePoolJobs])
 
   const appliedCount = Object.keys(appliedJobs).length
   const profileInitial = (profile?.fullName || profile?.username || 'U').trim().charAt(0).toUpperCase() || 'U'
@@ -743,15 +794,16 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2">
             <div className="run-strip">
-              <button type="button" className={`run-tag ${selectedRun === '0630' ? 'active' : ''}`} onClick={() => setSelectedRun('0630')}>
-                6:30 AM
-              </button>
-              <button type="button" className={`run-tag ${selectedRun === '0900' ? 'active' : ''}`} onClick={() => setSelectedRun('0900')}>
-                9:00 AM
-              </button>
-              <button type="button" className={`run-tag ${selectedRun === '1200' ? 'active' : ''}`} onClick={() => setSelectedRun('1200')}>
-                12:00 PM
-              </button>
+              {runTimeOptions.map((runTime) => (
+                <button
+                  key={runTime}
+                  type="button"
+                  className={`run-tag ${selectedRun === runTime ? 'active' : ''}`}
+                  onClick={() => setSelectedRun(runTime)}
+                >
+                  {formatRunTimeLabel(runTime)}
+                </button>
+              ))}
               <button type="button" className={`run-tag ${selectedRun === 'all' ? 'active' : ''}`} onClick={() => setSelectedRun('all')}>
                 All Runs
               </button>

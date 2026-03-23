@@ -80,8 +80,25 @@ create table if not exists public.user_settings (
   source_config jsonb not null default '{"linkedin":true,"startups":true,"funded":true,"stealth":true}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint user_settings_llm_provider_check check (llm_provider in ('openai', 'claude', 'gemini'))
+  constraint user_settings_llm_provider_check check (llm_provider in ('openai', 'claude', 'gemini')),
+  constraint user_settings_apify_token_format_check check (
+    apify_token = ''
+    or (
+      apify_token like 'apify_api_%'
+      and apify_token !~* '^\s*APIFY_TOKEN\s*='
+    )
+  )
 );
+
+alter table public.user_settings drop constraint if exists user_settings_apify_token_format_check;
+alter table public.user_settings
+  add constraint user_settings_apify_token_format_check check (
+    apify_token = ''
+    or (
+      apify_token like 'apify_api_%'
+      and apify_token !~* '^\s*APIFY_TOKEN\s*='
+    )
+  );
 
 create table if not exists public.user_profile_data (
   user_id uuid primary key references public.app_users(id) on delete cascade,

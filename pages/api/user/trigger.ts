@@ -3,6 +3,13 @@ import { getSessionUser } from '../../../lib/authSession'
 import { getSupabaseAdmin, isSupabaseConfigured } from '../../../lib/supabaseAdmin'
 import { validateLlmProviderModelAndKey } from '../../../lib/llmValidation'
 
+const normalizeApifyToken = (value: unknown): string =>
+  String(value || '')
+    .trim()
+    .replace(/^APIFY_TOKEN\s*=\s*/i, '')
+    .replace(/^['"]|['"]$/g, '')
+    .trim()
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
@@ -36,8 +43,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const runTimes = Array.isArray(settings?.run_times) ? settings?.run_times : []
   const targetRoles = Array.isArray(settings?.target_roles) ? settings?.target_roles : []
   const targetLocations = Array.isArray(settings?.target_locations) ? settings?.target_locations : []
+  const apifyToken = normalizeApifyToken(settings?.apify_token)
   const hasRequiredSettings =
-    Boolean(settings?.apify_token) &&
+    Boolean(apifyToken) &&
     Boolean(settings?.llm_api_key) &&
     Boolean(settings?.llm_provider) &&
     Boolean(settings?.llm_model) &&
@@ -51,6 +59,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({
       error:
         'Complete all settings before trigger: api keys, provider/model, run time, role, location, valid experience range, and additional requirements.',
+    })
+  }
+  if (!apifyToken.startsWith('apify_api_')) {
+    return res.status(400).json({
+      error: 'Invalid Apify token. Paste only the token value (starts with apify_api_), not APIFY_TOKEN=...',
     })
   }
 
@@ -68,7 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .insert({
       user_id: user.id,
       status: 'queued',
-      settings_snapshot: settings || {},
+      settings_snapshot: { ...(settings || {}), apify_token: apifyToken },
     })
     .select('id,status,requested_at')
     .single()

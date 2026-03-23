@@ -60,7 +60,8 @@ const LLM_BATCH_SIZE = Math.max(1, Number.parseInt(process.env.USER_RUN_LLM_BATC
 const LLM_TIMEOUT_MS = Math.max(10_000, Number.parseInt(process.env.USER_RUN_LLM_TIMEOUT_MS || '45000', 10) || 45_000)
 
 const ACTOR_IDS = {
-  linkedin: process.env.APIFY_ACTOR_LINKEDIN || 'apify/linkedin-jobs-scraper',
+  linkedin: process.env.APIFY_ACTOR_LINKEDIN || 'curious_coder/linkedin-jobs-scraper',
+  indeed: process.env.APIFY_ACTOR_INDEED || 'curious_coder/indeed-scraper',
   wellfound: process.env.APIFY_ACTOR_WELLFOUND || 'radeance/wellfound-job-listings-scraper',
   yc: process.env.APIFY_ACTOR_YC || 'artemlazarevm/yc-jobs-scraper',
   crunchbase: process.env.APIFY_ACTOR_CRUNCHBASE || 'parseforge/crunchbase-scraper',
@@ -71,6 +72,11 @@ const ACTOR_IDS = {
 const toStringValue = (value: unknown): string => (typeof value === 'string' ? value.trim() : '')
 const normalize = (value: unknown): string => toStringValue(value).toLowerCase()
 const toStringList = (value: unknown): string[] => (Array.isArray(value) ? value.map((v) => toStringValue(v)).filter(Boolean) : [])
+const normalizeApifyToken = (value: unknown): string =>
+  toStringValue(value)
+    .replace(/^APIFY_TOKEN\s*=\s*/i, '')
+    .replace(/^['"]|['"]$/g, '')
+    .trim()
 
 const getDateInTimezone = (date: Date, timeZone: string): string => {
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -216,6 +222,23 @@ const runApifyActor = async (token: string, actorId: string, input: JsonRecord):
   })
 }
 
+const runApifyActorWithFallbackInputs = async (
+  token: string,
+  actorId: string,
+  inputs: JsonRecord[],
+): Promise<JsonRecord[]> => {
+  let lastError: unknown = null
+  for (const input of inputs) {
+    try {
+      return await runApifyActor(token, actorId, input)
+    } catch (error) {
+      lastError = error
+    }
+  }
+  if (lastError instanceof Error) throw lastError
+  throw new Error(`All input shapes failed for actor ${actorId}`)
+}
+
 const buildRunQueries = (settings: UserSettingsRow): { roles: string[]; locations: string[] } => ({
   roles: toStringList(settings.target_roles).slice(0, 3),
   locations: toStringList(settings.target_locations).slice(0, 3),
@@ -260,7 +283,36 @@ const scrapeLinkedIn = async (settings: UserSettingsRow): Promise<NormalizedJob[
     searches: searches.slice(0, 12),
     maxResults: DEFAULT_MAX_RESULTS,
   })
-  return dedupeJobs(items.map((row) => normalizeJob(row, 'linkedin', settings)).filter((row): row is NormalizedJob => Boolean(row)))
+  const linkedinJobs = items.map((row) => normalizeJob(row, 'linkedin', settings)).filter((row): row is NormalizedJob => Boolean(row))
+
+  let indeedJobs: NormalizedJob[] = []
+  try {
+    const primaryRole = roles[0] || 'software engineer'
+    const primaryLocation = locations[0] || 'United States'
+    const indeedItems = await runApifyActorWithFallbackInputs(settings.apify_token, ACTOR_IDS.indeed, [
+      {
+        position: primaryRole,
+        location: primaryLocation,
+        country: 'us',
+        maxItems: Math.min(80, DEFAULT_MAX_RESULTS),
+      },
+      {
+        query: primaryRole,
+        location: primaryLocation,
+        maxResults: Math.min(80, DEFAULT_MAX_RESULTS),
+      },
+      {
+        searches: searches.slice(0, 8),
+        maxResults: Math.min(80, DEFAULT_MAX_RESULTS),
+      },
+    ])
+    indeedJobs = indeedItems.map((row) => normalizeJob(row, 'indeed', settings)).filter((row): row is NormalizedJob => Boolean(row))
+  } catch {
+    // Keep run alive if Indeed actor input shape changes or source is rate-limited.
+    indeedJobs = []
+  }
+
+  return dedupeJobs([...linkedinJobs, ...indeedJobs])
 }
 
 const scrapeStartups = async (settings: UserSettingsRow): Promise<NormalizedJob[]> => {
@@ -577,7 +629,9 @@ const runSourcesWithFallback = async (
 
 const validateSettings = (settings: UserSettingsRow | null): string | null => {
   if (!settings) return 'User settings not found'
-  if (!toStringValue(settings.apify_token)) return 'Missing Apify token'
+  const apifyToken = normalizeApifyToken(settings.apify_token)
+  if (!apifyToken) return 'Missing Apify token'
+  if (!apifyToken.startsWith('apify_api_')) return 'Invalid Apify token format. Use only token value (apify_api_...).'
   if (toStringList(settings.run_times).length === 0) return 'At least one run time is required'
   if (toStringList(settings.target_roles).length === 0) return 'At least one target role is required'
   if (toStringList(settings.target_locations).length === 0) return 'At least one target location is required'
@@ -619,6 +673,7 @@ export const executeRunRequest = async (
     return { runId: runRequest.id, userId: runRequest.user_id, ok: false, jobsFound: 0, error: validationError }
   }
   const userSettings = settings as UserSettingsRow
+  userSettings.apify_token = normalizeApifyToken(userSettings.apify_token)
   const sourceConfig = parseSourceConfig(userSettings.source_config)
 
   const { data: profileDataRow } = await supabase
@@ -640,6 +695,8 @@ export const executeRunRequest = async (
     await appendProgress(supabase, runRequest.id, snapshot, 'finalizing', 92, 'Saving run result')
     const now = new Date()
     const dayToken = getDateInTimezone(now, 'America/Los_Angeles')
+    const linkedinCount = sources.linkedinJobs.filter((job) => normalize(job.source) === 'linkedin').length
+    const indeedCount = sources.linkedinJobs.filter((job) => normalize(job.source) === 'indeed').length
     const runResult: JsonRecord = {
       date: dayToken,
       scrapedAt: now.toISOString(),
@@ -648,7 +705,9 @@ export const executeRunRequest = async (
       funded: sources.fundedItems,
       stealth: sources.stealthItems,
       source_stats: {
-        linkedin_jobs: sources.linkedinJobs.length,
+        linkedin_jobs: linkedinCount,
+        indeed_jobs: indeedCount,
+        jobs_board_total: sources.linkedinJobs.length,
         startups_jobs: sources.startupJobs.length,
         funded_items: sources.fundedItems.length,
         stealth_items: sources.stealthItems.length,
@@ -697,4 +756,3 @@ export const executeRunRequest = async (
     return { runId: runRequest.id, userId: runRequest.user_id, ok: false, jobsFound: 0, error: message }
   }
 }
-

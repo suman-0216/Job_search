@@ -66,6 +66,13 @@ const parseStoredRequirements = (rawValue: string): ParsedRequirements => {
   }
 }
 
+const normalizeApifyToken = (value: unknown): string =>
+  String(value || '')
+    .trim()
+    .replace(/^APIFY_TOKEN\s*=\s*/i, '')
+    .replace(/^['"]|['"]$/g, '')
+    .trim()
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!isSupabaseConfigured()) return res.status(500).json({ error: 'Supabase env is not configured' })
   const user = await getSessionUser(req)
@@ -125,7 +132,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const payload = {
       user_id: user.id,
-      apify_token: String(req.body?.apifyToken || ''),
+      apify_token: normalizeApifyToken(req.body?.apifyToken),
       llm_provider: String(req.body?.llmProvider || 'openai'),
       llm_api_key: String(req.body?.llmApiKey || ''),
       llm_model: String(req.body?.llmModel || ''),
