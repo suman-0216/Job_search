@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CheckIcon, MoonIcon, SunIcon } from '@heroicons/react/24/solid'
-import { ArrowTopRightOnSquareIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import {
+  ArrowTopRightOnSquareIcon,
+  Bars3Icon,
+  Cog6ToothIcon,
+  ChatBubbleLeftRightIcon,
+  DocumentTextIcon,
+  MicrophoneIcon,
+  SparklesIcon,
+  UserCircleIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
 import { useRouter } from 'next/router'
 import JobDetailPanel from '../components/JobDetailPanel'
 import CustomSelect, { SelectOption } from '../components/CustomSelect'
@@ -9,6 +19,7 @@ import SettingsPanel from '../components/SettingsPanel'
 type SortMode = 'score' | 'latest' | 'lowCompetition'
 type RunSlot = 'all' | string
 type SourceTab = 'all' | 'linkedin' | 'startups' | 'funded' | 'stealth'
+type WorkspaceSection = 'dashboard' | 'chat' | 'resume' | 'interview'
 
 interface JobRecord {
   [key: string]: unknown
@@ -265,10 +276,13 @@ export default function Dashboard() {
   const [selectedRun, setSelectedRun] = useState<RunSlot>('all')
   const [runTimeOptions, setRunTimeOptions] = useState<string[]>(['06:30', '09:00', '12:00'])
   const [sourceTab, setSourceTab] = useState<SourceTab>('all')
+  const [activeSection, setActiveSection] = useState<WorkspaceSection>('dashboard')
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
   const [pastFiveDates, setPastFiveDates] = useState<string[]>([])
   const [appliedJobs, setAppliedJobs] = useState<Record<string, AppliedJob>>({})
   const [appliedOnly, setAppliedOnly] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [profileMenuAnchor, setProfileMenuAnchor] = useState<{ left: number; bottom: number } | null>(null)
   const [profile, setProfile] = useState<{ email: string; username: string; fullName: string } | null>(null)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
@@ -279,6 +293,7 @@ export default function Dashboard() {
   const [runStatus, setRunStatus] = useState<RunRequestStatus | null>(null)
   const [lastRunStatus, setLastRunStatus] = useState<RunRequestStatus['status'] | null>(null)
   const [dismissedRunStatusId, setDismissedRunStatusId] = useState<string | null>(null)
+  const profileButtonRef = useRef<HTMLButtonElement | null>(null)
   const profileMenuRef = useRef<HTMLDivElement | null>(null)
 
   const typeOptions: SelectOption[] = [
@@ -398,21 +413,6 @@ export default function Dashboard() {
     }
     localStorage.setItem('theme', theme)
   }, [theme])
-
-  useEffect(() => {
-    const handlePointerDown = (event: MouseEvent) => {
-      if (!profileMenuOpen) return
-      const target = event.target as Node | null
-      if (profileMenuRef.current && target && !profileMenuRef.current.contains(target)) {
-        setProfileMenuOpen(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handlePointerDown)
-    return () => {
-      document.removeEventListener('mousedown', handlePointerDown)
-    }
-  }, [profileMenuOpen])
 
   useEffect(() => {
     let isActive = true
@@ -666,6 +666,39 @@ export default function Dashboard() {
     return counts
   }, [visiblePoolJobs])
 
+  const toggleProfileMenu = () => {
+    if (profileMenuOpen) {
+      setProfileMenuOpen(false)
+      setProfileMenuAnchor(null)
+      return
+    }
+
+    const rect = profileButtonRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    const menuWidth = 238
+    const nextLeft = Math.min(Math.max(8, sidebarCollapsed ? rect.right + 8 : rect.left), Math.max(8, window.innerWidth - menuWidth - 8))
+    const nextBottom = Math.max(8, window.innerHeight - rect.top + 8)
+    setProfileMenuAnchor({ left: nextLeft, bottom: nextBottom })
+    setProfileMenuOpen(true)
+  }
+
+  useEffect(() => {
+    if (!profileMenuOpen) return
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null
+      if (!target) return
+      if (profileMenuRef.current?.contains(target)) return
+      if (profileButtonRef.current?.contains(target)) return
+      setProfileMenuOpen(false)
+      setProfileMenuAnchor(null)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+    }
+  }, [profileMenuOpen])
+
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
 
   const logout = async () => {
@@ -767,7 +800,61 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="apple-shell min-h-screen text-[var(--apple-text)]">
+    <div className={`apple-shell dashboard-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''} min-h-screen text-[var(--apple-text)]`}>
+      <aside className={`dashboard-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+        <div className="sidebar-top">
+          <button
+            type="button"
+            className="sidebar-collapse-btn"
+            aria-label={sidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
+            onClick={() => setSidebarCollapsed((value) => !value)}
+          >
+            <Bars3Icon className="h-4 w-4" />
+          </button>
+          {!sidebarCollapsed ? <p className="sidebar-brand">Career Pipeline</p> : null}
+        </div>
+
+        <nav className="sidebar-nav">
+          <button type="button" className={`sidebar-nav-item ${activeSection === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveSection('dashboard')}>
+            <SparklesIcon className="h-4 w-4" />
+            {!sidebarCollapsed ? <span>Job Dashboard</span> : null}
+          </button>
+          <button type="button" className={`sidebar-nav-item ${activeSection === 'chat' ? 'active' : ''}`} onClick={() => setActiveSection('chat')}>
+            <ChatBubbleLeftRightIcon className="h-4 w-4" />
+            {!sidebarCollapsed ? <span>New Chat</span> : null}
+          </button>
+          <button type="button" className={`sidebar-nav-item ${activeSection === 'resume' ? 'active' : ''}`} onClick={() => setActiveSection('resume')}>
+            <DocumentTextIcon className="h-4 w-4" />
+            {!sidebarCollapsed ? <span>Resume</span> : null}
+          </button>
+          <button type="button" className={`sidebar-nav-item ${activeSection === 'interview' ? 'active' : ''}`} onClick={() => setActiveSection('interview')}>
+            <ChatBubbleLeftRightIcon className="h-4 w-4" />
+            {!sidebarCollapsed ? <span>AI Interview</span> : null}
+          </button>
+        </nav>
+
+        <div className="sidebar-footer" data-profile-menu-root="true">
+          <button
+            type="button"
+            className="sidebar-profile-trigger"
+            ref={profileButtonRef}
+            onClick={toggleProfileMenu}
+            aria-label="Profile menu"
+            aria-expanded={profileMenuOpen}
+          >
+            <span className="sidebar-profile-avatar">{profileInitial}</span>
+            {!sidebarCollapsed ? (
+              <span className="sidebar-profile-texts">
+                <span className="sidebar-profile-name">{profile?.fullName || profile?.username || 'User'}</span>
+                <span className="sidebar-profile-plan">Career Pipeline Pro</span>
+              </span>
+            ) : null}
+            {!sidebarCollapsed ? <UserCircleIcon className="h-4 w-4 text-[var(--apple-text-muted)]" /> : null}
+          </button>
+        </div>
+      </aside>
+
+      <div className="dashboard-main">
       <header className="sticky top-0 z-40 border-b border-[var(--apple-border)] bg-[var(--apple-nav)]/95 backdrop-blur-xl">
         <div className="flex h-[54px] w-full items-center justify-between gap-2 px-3 sm:px-6">
           <div className="min-w-0 flex items-center gap-3">
@@ -833,56 +920,11 @@ export default function Dashboard() {
             >
               {theme === 'dark' ? <MoonIcon className="h-4 w-4" /> : <SunIcon className="h-4 w-4" />}
             </button>
-            <div className="relative" ref={profileMenuRef}>
-              <button
-                type="button"
-                onClick={() => setProfileMenuOpen((v) => !v)}
-                className="icon-circle-btn logout-btn apple-input"
-                aria-label="Profile menu"
-              >
-                <span className="text-sm font-semibold leading-none">{profileInitial}</span>
-              </button>
-              {profileMenuOpen && (
-                <div className="profile-menu">
-                  <p className="profile-name">{profile?.fullName || profile?.username || 'User'}</p>
-                  {profile?.email ? <p className="profile-username">{profile.email}</p> : null}
-                  <button
-                    type="button"
-                    className="profile-action"
-                    onClick={() => {
-                      setProfileMenuOpen(false)
-                      setShowSettingsModal(true)
-                    }}
-                  >
-                    Settings
-                  </button>
-                  <button
-                    type="button"
-                    className="profile-action"
-                    onClick={() => {
-                      setProfileMenuOpen(false)
-                      setShowPasswordModal(true)
-                    }}
-                  >
-                    Change Password
-                  </button>
-                  <button
-                    type="button"
-                    className="profile-action danger"
-                    onClick={() => {
-                      setProfileMenuOpen(false)
-                      void logout()
-                    }}
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </header>
 
+      {activeSection === 'dashboard' ? (
       <main className="flex min-h-[calc(100vh-54px)] w-full flex-col px-3 pb-4 pt-3 sm:px-6">
         <section className="compact-panel">
           <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
@@ -1040,6 +1082,95 @@ export default function Dashboard() {
           </div>
         </section>
       </main>
+      ) : (
+        <main className="flex min-h-[calc(100vh-54px)] w-full flex-col px-3 pb-4 pt-3 sm:px-6">
+          <section className="workspace-stage">
+            {activeSection === 'interview' ? (
+              <div className="feature-placeholder interview-chat-shell">
+                <h2 className="feature-placeholder-title">AI Interview</h2>
+                <p className="feature-placeholder-text">Practice with both chat and voice in one place.</p>
+                <div className="interview-mode-row">
+                  <button type="button" className="interview-mode-btn active">Chat Interview</button>
+                  <button type="button" className="interview-mode-btn">
+                    <MicrophoneIcon className="h-4 w-4" />
+                    Voice Interview
+                  </button>
+                </div>
+                <div className="interview-composer">
+                  <button type="button" className="interview-composer-icon" aria-label="Attach">+</button>
+                  <input className="interview-composer-input" placeholder="Ask anything for interview prep..." />
+                  <button type="button" className="interview-composer-icon" aria-label="Mic">
+                    <MicrophoneIcon className="h-5 w-5" />
+                  </button>
+                  <button type="button" className="interview-composer-voice" aria-label="Start voice interview">
+                    <MicrophoneIcon className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="feature-placeholder">
+                <h2 className="feature-placeholder-title">
+                  {activeSection === 'chat' ? 'New Chat' : 'Resume Studio'}
+                </h2>
+                <p className="feature-placeholder-text">
+                  {activeSection === 'chat'
+                    ? 'Use this section for LLM-assisted resume editing and job Q&A.'
+                    : 'Upload and refine resume versions with AI support.'}
+                </p>
+              </div>
+            )}
+          </section>
+        </main>
+      )}
+      </div>
+
+      {profileMenuOpen && profileMenuAnchor && (
+        <div
+          ref={profileMenuRef}
+          className="sidebar-profile-menu-fixed"
+          style={{ left: `${profileMenuAnchor.left}px`, bottom: `${profileMenuAnchor.bottom}px` }}
+        >
+          <div className="sidebar-profile-head">
+            <span className="sidebar-profile-avatar large">{profileInitial}</span>
+            <div className="sidebar-profile-head-text">
+              <p className="profile-name compact">{profile?.fullName || profile?.username || 'User'}</p>
+              <p className="profile-username compact">{profile?.email || 'Free'}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="profile-action icony"
+            onClick={() => {
+              setProfileMenuOpen(false)
+              setShowSettingsModal(true)
+            }}
+          >
+            <Cog6ToothIcon className="h-4 w-4" />
+            Settings
+          </button>
+          <button
+            type="button"
+            className="profile-action icony"
+            onClick={() => {
+              setProfileMenuOpen(false)
+              setShowPasswordModal(true)
+            }}
+          >
+            <Cog6ToothIcon className="h-4 w-4" />
+            Change Password
+          </button>
+          <button
+            type="button"
+            className="profile-action danger icony"
+            onClick={() => {
+              setProfileMenuOpen(false)
+              void logout()
+            }}
+          >
+            Logout
+          </button>
+        </div>
+      )}
 
       {selectedJob && <JobDetailPanel job={selectedJob} onClose={() => setSelectedJob(null)} />}
 
