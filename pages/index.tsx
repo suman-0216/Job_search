@@ -15,6 +15,7 @@ import { useRouter } from 'next/router'
 import JobDetailPanel from '../components/JobDetailPanel'
 import CustomSelect, { SelectOption } from '../components/CustomSelect'
 import SettingsPanel from '../components/SettingsPanel'
+import ResumeStudio from '../components/ResumeStudio'
 
 type SortMode = 'score' | 'latest' | 'lowCompetition'
 type RunSlot = 'all' | string
@@ -87,6 +88,13 @@ interface RunRequestStatus {
   stage?: string | null
   percent?: number | null
   logs?: Array<{ at?: string; stage?: string; message?: string }>
+  stepStatus?: Record<string, unknown>
+  warning?: string | null
+  jobsCount?: number
+  fundedCount?: number
+  stealthCount?: number
+  sourceFailures?: string[]
+  sourceFailureDetails?: Array<{ source?: string; phase?: string; message?: string; at?: string }>
 }
 
 const EMPTY_DAY: DashboardDay = {
@@ -645,11 +653,20 @@ export default function Dashboard() {
       ? `${Math.max(0, Math.min(100, Math.round(runStatus.percent)))}%`
       : ''
   const runStageText = toStringValue(runStatus?.stage || '').replace(/_/g, ' ')
+  const firstSourceFailureDetail = runStatus?.sourceFailureDetails?.[0]
+  const firstSourceFailure =
+    firstSourceFailureDetail && (firstSourceFailureDetail.message || firstSourceFailureDetail.source)
+      ? `${toStringValue(firstSourceFailureDetail.source, 'source')}: ${toStringValue(firstSourceFailureDetail.message, 'Unknown source error')}`
+      : runStatus?.sourceFailures?.[0] || ''
+  const completedJobsText =
+    typeof runStatus?.jobsCount === 'number'
+      ? `${runStatus.jobsCount} jobs${typeof runStatus?.fundedCount === 'number' && typeof runStatus?.stealthCount === 'number' ? ` | funded ${runStatus.fundedCount} | stealth ${runStatus.stealthCount}` : ''}`
+      : 'Jobs updated'
   const runStatusDetail =
     runStatus?.status === 'failed'
-      ? runStatus.error || 'Run failed'
+      ? runStatus.error || firstSourceFailure || 'Run failed'
       : runStatus?.status === 'completed'
-        ? 'Jobs updated'
+        ? runStatus.warning || `${completedJobsText}${firstSourceFailure ? ` | ${firstSourceFailure}` : ''}`
         : runStatus?.status === 'running'
           ? `${runProgressText ? `${runProgressText} | ` : ''}${runStageText || 'Processing'}${latestRunLogMessage ? ` | ${latestRunLogMessage}` : ''}`
           : runStatus?.status === 'queued'
@@ -819,10 +836,10 @@ export default function Dashboard() {
             <SparklesIcon className="h-4 w-4" />
             {!sidebarCollapsed ? <span>Job Dashboard</span> : null}
           </button>
-          <button type="button" className={`sidebar-nav-item ${activeSection === 'chat' ? 'active' : ''}`} onClick={() => setActiveSection('chat')}>
+          {/* <button type="button" className={`sidebar-nav-item ${activeSection === 'chat' ? 'active' : ''}`} onClick={() => setActiveSection('chat')}>
             <ChatBubbleLeftRightIcon className="h-4 w-4" />
             {!sidebarCollapsed ? <span>New Chat</span> : null}
-          </button>
+          </button> */}
           <button type="button" className={`sidebar-nav-item ${activeSection === 'resume' ? 'active' : ''}`} onClick={() => setActiveSection('resume')}>
             <DocumentTextIcon className="h-4 w-4" />
             {!sidebarCollapsed ? <span>Resume</span> : null}
@@ -1107,17 +1124,10 @@ export default function Dashboard() {
                   </button>
                 </div>
               </div>
+            ) : activeSection === 'resume' ? (
+              <ResumeStudio />
             ) : (
-              <div className="feature-placeholder">
-                <h2 className="feature-placeholder-title">
-                  {activeSection === 'chat' ? 'New Chat' : 'Resume Studio'}
-                </h2>
-                <p className="feature-placeholder-text">
-                  {activeSection === 'chat'
-                    ? 'Use this section for LLM-assisted resume editing and job Q&A.'
-                    : 'Upload and refine resume versions with AI support.'}
-                </p>
-              </div>
+              <div className="feature-placeholder" />
             )}
           </section>
         </main>

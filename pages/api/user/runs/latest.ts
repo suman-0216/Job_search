@@ -27,6 +27,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const snapshot = (data.settings_snapshot || {}) as Record<string, unknown>
   const progress = (snapshot.run_progress || {}) as Record<string, unknown>
   const logs = Array.isArray(progress.logs) ? progress.logs : []
+  const stepStatus =
+    progress.step_status && typeof progress.step_status === 'object'
+      ? (progress.step_status as Record<string, unknown>)
+      : {}
+  const runResult =
+    snapshot.run_result && typeof snapshot.run_result === 'object'
+      ? (snapshot.run_result as Record<string, unknown>)
+      : {}
+  const sourceStats =
+    runResult.source_stats && typeof runResult.source_stats === 'object'
+      ? (runResult.source_stats as Record<string, unknown>)
+      : {}
+  const jobsCount = Array.isArray(runResult.jobs) ? runResult.jobs.length : 0
+  const fundedCount = Array.isArray(runResult.funded) ? runResult.funded.length : 0
+  const stealthCount = Array.isArray(runResult.stealth) ? runResult.stealth.length : 0
+  const sourceFailureDetails = Array.isArray(sourceStats.source_failure_details) ? sourceStats.source_failure_details : []
+  const sourceFailures = Array.isArray(sourceStats.source_failures) ? sourceStats.source_failures : []
+  const warning = typeof runResult.warning === 'string' ? runResult.warning : null
 
   return res.status(200).json({
     run: {
@@ -39,6 +57,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       stage: typeof progress.stage === 'string' ? progress.stage : null,
       percent: typeof progress.percent === 'number' ? progress.percent : null,
       logs,
+      stepStatus,
+      warning,
+      jobsCount,
+      fundedCount,
+      stealthCount,
+      sourceFailures,
+      sourceFailureDetails,
     },
   })
 }

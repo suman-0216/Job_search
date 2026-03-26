@@ -107,9 +107,26 @@ create table if not exists public.user_profile_data (
   resume_file_base64 text not null default '',
   resume_text text not null default '',
   personal_input text not null default '',
+  job_description text not null default '',
+  ats_prompt text not null default '',
+  template_markdown text not null default '',
+  generated_markdown text not null default '',
+  selected_font text not null default 'Arial',
+  download_file_name text not null default '',
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint user_profile_data_selected_font_check check (selected_font in ('Arial', 'Times New Roman', 'Calibri'))
 );
+
+alter table public.user_profile_data add column if not exists job_description text not null default '';
+alter table public.user_profile_data add column if not exists ats_prompt text not null default '';
+alter table public.user_profile_data add column if not exists template_markdown text not null default '';
+alter table public.user_profile_data add column if not exists generated_markdown text not null default '';
+alter table public.user_profile_data add column if not exists selected_font text not null default 'Arial';
+alter table public.user_profile_data add column if not exists download_file_name text not null default '';
+alter table public.user_profile_data drop constraint if exists user_profile_data_selected_font_check;
+alter table public.user_profile_data
+  add constraint user_profile_data_selected_font_check check (selected_font in ('Arial', 'Times New Roman', 'Calibri'));
 
 create table if not exists public.user_run_requests (
   id uuid primary key default gen_random_uuid(),

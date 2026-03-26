@@ -38,6 +38,13 @@ type SourceConfig = {
   stealth: boolean
 }
 
+type SourceFailureDetail = {
+  source: keyof SourceConfig
+  phase: 'parallel' | 'sequential'
+  message: string
+  at: string
+}
+
 type NormalizedJob = JsonRecord & {
   title: string
   company: string
@@ -111,6 +118,12 @@ const parseSourceConfig = (value: unknown): SourceConfig => {
     funded: raw.funded !== false,
     stealth: raw.stealth !== false,
   }
+}
+
+const toErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) return toStringValue(error.message) || 'Unknown error'
+  if (typeof error === 'string') return toStringValue(error) || 'Unknown error'
+  return 'Unknown error'
 }
 
 const dedupeJobs = (jobs: NormalizedJob[]): NormalizedJob[] => {
@@ -562,13 +575,43 @@ const appendProgress = async (
     ? (snapshot.run_progress as JsonRecord)
     : {}) as JsonRecord
   const logs = (Array.isArray(current.logs) ? current.logs : []) as JsonRecord[]
+  const stepStatus =
+    current.step_status && typeof current.step_status === 'object'
+      ? ({ ...(current.step_status as JsonRecord) } as JsonRecord)
+      : ({} as JsonRecord)
   const nextLogs = [...logs, { at: new Date().toISOString(), stage, message }].slice(-40)
+  stepStatus[stage] = {
+    state: stage === 'failed' ? 'failed' : 'completed',
+    at: new Date().toISOString(),
+    message,
+    percent: Math.max(0, Math.min(100, percent)),
+  }
   snapshot.run_progress = {
     stage,
     percent: Math.max(0, Math.min(100, percent)),
     logs: nextLogs,
+    step_status: stepStatus,
   }
   await updateRunRow(supabase, runId, { settings_snapshot: snapshot })
+}
+
+const buildTerminalProgress = (snapshot: JsonRecord, stage: 'completed' | 'failed', message: string): JsonRecord => {
+  const current = (snapshot.run_progress && typeof snapshot.run_progress === 'object'
+    ? (snapshot.run_progress as JsonRecord)
+    : {}) as JsonRecord
+  const logs = (Array.isArray(current.logs) ? current.logs : []) as JsonRecord[]
+  const stepStatus =
+    current.step_status && typeof current.step_status === 'object'
+      ? ({ ...(current.step_status as JsonRecord) } as JsonRecord)
+      : ({} as JsonRecord)
+  const now = new Date().toISOString()
+  stepStatus[stage] = { state: stage, at: now, message, percent: 100 }
+  return {
+    stage,
+    percent: 100,
+    logs: [...logs, { at: now, stage, message }].slice(-50),
+    step_status: stepStatus,
+  }
 }
 
 const runSourcesWithFallback = async (
@@ -580,6 +623,7 @@ const runSourcesWithFallback = async (
   fundedItems: JsonRecord[]
   stealthItems: JsonRecord[]
   failures: string[]
+  failureDetails: SourceFailureDetail[]
 }> => {
   const tasks: Array<{ key: keyof SourceConfig; name: string; run: () => Promise<unknown> }> = []
   if (sourceConfig.linkedin) tasks.push({ key: 'linkedin', name: 'linkedin', run: () => scrapeLinkedIn(settings) })
@@ -593,6 +637,7 @@ const runSourcesWithFallback = async (
     fundedItems: [] as JsonRecord[],
     stealthItems: [] as JsonRecord[],
     failures: [] as string[],
+    failureDetails: [] as SourceFailureDetail[],
   }
 
   const settled = await Promise.allSettled(tasks.map((task) => task.run()))
@@ -608,6 +653,12 @@ const runSourcesWithFallback = async (
     }
     failedTaskIndexes.push(idx)
     output.failures.push(`${task.name}: parallel run failed`)
+    output.failureDetails.push({
+      source: task.key,
+      phase: 'parallel',
+      message: toErrorMessage(result.reason),
+      at: new Date().toISOString(),
+    })
   })
 
   for (const idx of failedTaskIndexes) {
@@ -619,8 +670,15 @@ const runSourcesWithFallback = async (
       if (task.key === 'funded') output.fundedItems = (value as JsonRecord[]) || []
       if (task.key === 'stealth') output.stealthItems = (value as JsonRecord[]) || []
       output.failures = output.failures.filter((msg) => !msg.startsWith(`${task.name}:`))
-    } catch {
+      output.failureDetails = output.failureDetails.filter((item) => !(item.source === task.key && item.phase === 'parallel'))
+    } catch (error) {
       output.failures.push(`${task.name}: sequential retry failed`)
+      output.failureDetails.push({
+        source: task.key,
+        phase: 'sequential',
+        message: toErrorMessage(error),
+        at: new Date().toISOString(),
+      })
     }
   }
 
@@ -661,14 +719,14 @@ export const executeRunRequest = async (
 
   if (settingsError) {
     const message = settingsError.message
-    snapshot.run_progress = { stage: 'failed', percent: 100, logs: [{ at: new Date().toISOString(), stage: 'failed', message }] }
+    snapshot.run_progress = buildTerminalProgress(snapshot, 'failed', message)
     await updateRunRow(supabase, runRequest.id, { status: 'failed', finished_at: new Date().toISOString(), error: message, settings_snapshot: snapshot })
     return { runId: runRequest.id, userId: runRequest.user_id, ok: false, jobsFound: 0, error: message }
   }
 
   const validationError = validateSettings(settings)
   if (validationError) {
-    snapshot.run_progress = { stage: 'failed', percent: 100, logs: [{ at: new Date().toISOString(), stage: 'failed', message: validationError }] }
+    snapshot.run_progress = buildTerminalProgress(snapshot, 'failed', validationError)
     await updateRunRow(supabase, runRequest.id, { status: 'failed', finished_at: new Date().toISOString(), error: validationError, settings_snapshot: snapshot })
     return { runId: runRequest.id, userId: runRequest.user_id, ok: false, jobsFound: 0, error: validationError }
   }
@@ -685,6 +743,10 @@ export const executeRunRequest = async (
   try {
     await appendProgress(supabase, runRequest.id, snapshot, 'scraping', 25, 'Running source scrapers')
     const sources = await runSourcesWithFallback(userSettings, sourceConfig)
+    const enabledSources = (Object.keys(sourceConfig) as Array<keyof SourceConfig>).filter((key) => sourceConfig[key])
+    const failedSourceSet = new Set(sources.failureDetails.map((item) => item.source))
+    const sourceItemsTotal = sources.linkedinJobs.length + sources.startupJobs.length + sources.fundedItems.length + sources.stealthItems.length
+    const allEnabledSourcesFailed = enabledSources.length > 0 && enabledSources.every((source) => failedSourceSet.has(source))
 
     await appendProgress(supabase, runRequest.id, snapshot, 'normalizing', 55, 'Combining and deduplicating jobs')
     const baseJobs = dedupeJobs([...sources.linkedinJobs, ...sources.startupJobs])
@@ -716,18 +778,37 @@ export const executeRunRequest = async (
         llm_provider: userSettings.llm_provider,
         llm_model: userSettings.llm_model,
         source_failures: sources.failures,
+        source_failure_details: sources.failureDetails,
+        enabled_sources: enabledSources,
+        source_items_total: sourceItemsTotal,
       },
+    }
+    if (llmJobs.length === 0) {
+      runResult.warning = allEnabledSourcesFailed
+        ? 'No jobs because all enabled sources failed. Check source_failure_details.'
+        : 'No jobs returned for this run window.'
     }
 
     snapshot.run_result = runResult
-    snapshot.run_progress = {
-      stage: 'completed',
-      percent: 100,
-      logs: [
-        ...(((snapshot.run_progress as JsonRecord)?.logs as JsonRecord[]) || []),
-        { at: new Date().toISOString(), stage: 'completed', message: `Completed with ${llmJobs.length} jobs` },
-      ].slice(-50),
+    if (allEnabledSourcesFailed) {
+      const message = 'All enabled sources failed. Check source failure details in run logs.'
+      snapshot.run_progress = buildTerminalProgress(snapshot, 'failed', message)
+      await updateRunRow(supabase, runRequest.id, {
+        status: 'failed',
+        error: message,
+        finished_at: new Date().toISOString(),
+        settings_snapshot: snapshot,
+      })
+      return { runId: runRequest.id, userId: runRequest.user_id, ok: false, jobsFound: 0, error: message }
     }
+
+    const completedMessage =
+      llmJobs.length > 0
+        ? `Completed with ${llmJobs.length} jobs`
+        : sources.failureDetails.length > 0
+          ? 'Completed with 0 jobs (some sources failed)'
+          : 'Completed with 0 jobs'
+    snapshot.run_progress = buildTerminalProgress(snapshot, 'completed', completedMessage)
 
     await updateRunRow(supabase, runRequest.id, {
       status: 'completed',
@@ -739,14 +820,7 @@ export const executeRunRequest = async (
     return { runId: runRequest.id, userId: runRequest.user_id, ok: true, jobsFound: llmJobs.length }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown run error'
-    snapshot.run_progress = {
-      stage: 'failed',
-      percent: 100,
-      logs: [
-        ...(((snapshot.run_progress as JsonRecord)?.logs as JsonRecord[]) || []),
-        { at: new Date().toISOString(), stage: 'failed', message },
-      ].slice(-50),
-    }
+    snapshot.run_progress = buildTerminalProgress(snapshot, 'failed', message)
     await updateRunRow(supabase, runRequest.id, {
       status: 'failed',
       error: message,

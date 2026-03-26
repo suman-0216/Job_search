@@ -316,7 +316,14 @@ export default function SettingsPanel({ onClose, className }: SettingsPanelProps
           dataUrl,
         }),
       })
-      const payload = (await response.json()) as { error?: string; extractedText?: string }
+      let payload: { error?: string; extractedText?: string } = {}
+      const contentType = String(response.headers.get('content-type') || '')
+      if (contentType.includes('application/json')) {
+        payload = (await response.json()) as { error?: string; extractedText?: string }
+      } else {
+        const text = await response.text()
+        payload = { error: text || `Upload failed (${response.status})` }
+      }
       if (!response.ok) {
         setMessage(payload.error || 'Failed to upload resume')
         return

@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import mammoth from 'mammoth'
-import { PDFParse } from 'pdf-parse'
 import { getSessionUser } from '../../../lib/authSession'
 import { getSupabaseAdmin, isSupabaseConfigured } from '../../../lib/supabaseAdmin'
+import { DOCX_MIME, PDF_MIME, extractTextFromUpload, isDocxName, isPdfName, toBase64Payload } from '../../../lib/fileTextExtraction'
 
 type UploadBody = {
   fileName?: string
@@ -10,46 +9,21 @@ type UploadBody = {
   dataUrl?: string
 }
 
-const ALLOWED_MIME = new Set([
-  'application/pdf',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-])
-
-const isDocxName = (name: string): boolean => name.toLowerCase().endsWith('.docx')
-const isPdfName = (name: string): boolean => name.toLowerCase().endsWith('.pdf')
-
-const toBase64Payload = (dataUrl: string): string => {
-  const marker = 'base64,'
-  const index = dataUrl.indexOf(marker)
-  if (index < 0) return ''
-  return dataUrl.slice(index + marker.length)
+export const config = {
+  api: {
+    bodyParser: {
+      // Base64 upload payload is larger than raw file bytes.
+      // Keep this above 8MB raw-file limit enforced below.
+      sizeLimit: '16mb',
+    },
+  },
 }
 
-const normalizeExtractedText = (raw: string): string =>
-  String(raw || '')
-    .replace(/\r/g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim()
-
-const parsePdfText = async (fileBuffer: Buffer): Promise<string> => {
-  const parser = new PDFParse({ data: new Uint8Array(fileBuffer) })
-  try {
-    const parsed = await parser.getText()
-    return normalizeExtractedText(parsed.text || '')
-  } finally {
-    await parser.destroy().catch(() => undefined)
-  }
-}
-
-const extractTextFromResume = async (fileBuffer: Buffer, fileName: string, mimeType: string): Promise<string> => {
-  if (mimeType === 'application/pdf' || isPdfName(fileName)) {
-    return parsePdfText(fileBuffer)
-  }
-  if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || isDocxName(fileName)) {
-    const parsed = await mammoth.extractRawText({ buffer: fileBuffer })
-    return normalizeExtractedText(parsed.value || '')
-  }
-  return ''
+const ALLOWED_MIME = new Set([PDF_MIME, DOCX_MIME])
+const isMissingColumnError = (error: unknown): boolean => {
+  const message = typeof error === 'object' && error && 'message' in error ? String((error as { message?: string }).message || '') : ''
+  const code = typeof error === 'object' && error && 'code' in error ? String((error as { code?: string }).code || '') : ''
+  return code === '42703' || code === 'PGRST204' || /column .* does not exist/i.test(message) || /could not find.*column/i.test(message)
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -65,16 +39,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const body = (req.body || {}) as UploadBody
   const fileName = String(body.fileName || '').trim()
-  const mimeType = String(body.mimeType || '').trim()
+  const mimeTypeRaw = String(body.mimeType || '').trim()
+  const inferredMime = isPdfName(fileName) ? PDF_MIME : isDocxName(fileName) ? DOCX_MIME : ''
+  const mimeType = mimeTypeRaw || inferredMime
   const dataUrl = String(body.dataUrl || '')
 
-  if (!fileName || !mimeType || !dataUrl) {
+  if (!fileName || !dataUrl) {
     return res.status(400).json({ error: 'Missing file payload' })
   }
 
-  const validByMime = ALLOWED_MIME.has(mimeType)
+  const validByMime = !mimeTypeRaw || ALLOWED_MIME.has(mimeTypeRaw)
   const validByName = isPdfName(fileName) || isDocxName(fileName)
-  if (!validByMime || !validByName) {
+  if (!validByName || !validByMime) {
     return res.status(400).json({ error: 'Only PDF and DOCX files are supported.' })
   }
 
@@ -86,30 +62,65 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (fileBuffer.length > 8 * 1024 * 1024) return res.status(400).json({ error: 'Resume file too large (max 8MB)' })
 
   try {
-    const extractedText = await extractTextFromResume(fileBuffer, fileName, mimeType)
+    const extractedText = await extractTextFromUpload(fileBuffer, fileName, mimeType)
     if (!extractedText) {
       return res.status(400).json({ error: 'Could not extract text from this file. Please try another PDF/DOCX.' })
     }
 
     const supabase = getSupabaseAdmin()
-    const { data: existing } = await supabase
+    const existingExtended = await supabase
       .from('user_profile_data')
-      .select('personal_input')
+      .select('personal_input,job_description,ats_prompt,template_markdown,generated_markdown,selected_font,download_file_name')
       .eq('user_id', user.id)
       .maybeSingle()
+    let existing = existingExtended.data as Record<string, unknown> | null
+    if (existingExtended.error && isMissingColumnError(existingExtended.error)) {
+      const existingFallback = await supabase
+        .from('user_profile_data')
+        .select('personal_input')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      if (existingFallback.error) return res.status(500).json({ error: existingFallback.error.message })
+      existing = existingFallback.data as Record<string, unknown> | null
+    } else if (existingExtended.error) {
+      return res.status(500).json({ error: existingExtended.error.message })
+    }
 
-    const { error } = await supabase.from('user_profile_data').upsert(
+    const defaultDownloadName = fileName.replace(/\.[^.]+$/, '').trim().slice(0, 180)
+
+    const extendedUpsert = await supabase.from('user_profile_data').upsert(
       {
         user_id: user.id,
         resume_file_name: fileName,
         resume_file_mime: mimeType,
         resume_file_base64: base64,
         resume_text: extractedText.slice(0, 120_000),
-        personal_input: String(existing?.personal_input || ''),
+        personal_input: '',
+        job_description: '',
+        ats_prompt: '',
+        template_markdown: '',
+        generated_markdown: '',
+        selected_font: 'Arial',
+        download_file_name: defaultDownloadName || 'tailored_resume',
       },
       { onConflict: 'user_id' },
     )
-    if (error) return res.status(500).json({ error: error.message })
+    if (extendedUpsert.error && isMissingColumnError(extendedUpsert.error)) {
+      const fallbackUpsert = await supabase.from('user_profile_data').upsert(
+        {
+          user_id: user.id,
+          resume_file_name: fileName,
+          resume_file_mime: mimeType,
+          resume_file_base64: base64,
+          resume_text: extractedText.slice(0, 120_000),
+          personal_input: '',
+        },
+        { onConflict: 'user_id' },
+      )
+      if (fallbackUpsert.error) return res.status(500).json({ error: fallbackUpsert.error.message })
+    } else if (extendedUpsert.error) {
+      return res.status(500).json({ error: extendedUpsert.error.message })
+    }
 
     return res.status(200).json({
       ok: true,
