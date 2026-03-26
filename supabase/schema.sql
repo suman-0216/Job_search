@@ -33,6 +33,16 @@ create table if not exists public.app_sessions (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.extension_sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.app_users(id) on delete cascade,
+  token_hash text not null unique,
+  expires_at timestamptz not null,
+  last_used_at timestamptz not null default now(),
+  revoked_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.job_snapshots (
   id uuid primary key default gen_random_uuid(),
   snapshot_date date not null unique,
@@ -143,6 +153,8 @@ create table if not exists public.user_run_requests (
 
 create index if not exists idx_app_sessions_token_hash on public.app_sessions(token_hash);
 create index if not exists idx_app_sessions_user_expires on public.app_sessions(user_id, expires_at);
+create index if not exists idx_extension_sessions_token_hash on public.extension_sessions(token_hash);
+create index if not exists idx_extension_sessions_user_expires on public.extension_sessions(user_id, expires_at);
 create index if not exists idx_applied_jobs_user_status on public.applied_jobs(user_id, status);
 create index if not exists idx_job_snapshots_date on public.job_snapshots(snapshot_date desc);
 create index if not exists idx_user_run_requests_user_requested on public.user_run_requests(user_id, requested_at desc);

@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Job Hunter Resume Assistant",
+  "version": "1.0.0",
+  "description": "Enterprise resume assistant side panel with secure login and LLM settings.",
+  "permissions": ["storage", "sidePanel"],
+  "host_permissions": [
+    "https://jobsync-alpha.vercel.app/*",
+    "http://localhost:3000/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Open Resume Assistant"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  }
+}
