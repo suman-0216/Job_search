@@ -111,11 +111,11 @@ create table if not exists public.user_profile_data (
   ats_prompt text not null default '',
   template_markdown text not null default '',
   generated_markdown text not null default '',
-  selected_font text not null default 'Arial',
+  selected_font text not null default 'Calibri',
   download_file_name text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint user_profile_data_selected_font_check check (selected_font in ('Arial', 'Times New Roman', 'Calibri'))
+  constraint user_profile_data_selected_font_check check (selected_font in ('Arial', 'Times New Roman', 'Calibri', 'Roboto', 'Garamond'))
 );
 
 alter table public.user_profile_data add column if not exists job_description text not null default '';
@@ -126,7 +126,8 @@ alter table public.user_profile_data add column if not exists selected_font text
 alter table public.user_profile_data add column if not exists download_file_name text not null default '';
 alter table public.user_profile_data drop constraint if exists user_profile_data_selected_font_check;
 alter table public.user_profile_data
-  add constraint user_profile_data_selected_font_check check (selected_font in ('Arial', 'Times New Roman', 'Calibri'));
+  add constraint user_profile_data_selected_font_check check (selected_font in ('Arial', 'Times New Roman', 'Calibri', 'Roboto', 'Garamond'));
+alter table public.user_profile_data alter column selected_font set default 'Calibri';
 
 create table if not exists public.user_run_requests (
   id uuid primary key default gen_random_uuid(),

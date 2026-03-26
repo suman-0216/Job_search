@@ -787,13 +787,15 @@
 .resume-preview-line-numbered-list {
   font-size: 10pt;
   line-height: 1.2;
+  margin-top: 0;
   margin-bottom: 4px; /* 3pt */
-  padding-left: 16px;
+  margin-left: 0;
+  padding-left: 24px; /* mirrors DOCX bullet paragraph indent */
   list-style-position: outside;
 }
 
 .resume-preview-line-bullet-list {
-  list-style-type: disc;
+  list-style-type: none;
 }
 
 .resume-preview-line-numbered-list {
@@ -809,8 +811,17 @@
 
 .resume-preview-line-bullet-list li::marker,
 .resume-preview-line-numbered-list li::marker {
-  font-size: 10pt;
+  font-size: 8pt;
   color: #111111;
+}
+
+.resume-preview-line-bullet-list li::before {
+  content: "\25CF";
+  font-size: 8pt;
+  color: #111111;
+  display: inline-block;
+  width: 12px; /* hanging indent feel similar to Word */
+  margin-left: -12px;
 }
 
 .resume-preview-line-auto-bold {

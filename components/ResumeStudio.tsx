@@ -63,7 +63,7 @@ const parseBold = (value: string): InlineToken[] => {
 
 const parseInline = (input: string): InlineToken[] => {
   const text = input || ''
-  const regex = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g
+  const regex = /\[([^\]]+)\]\(((?:https?:\/\/|mailto:)[^)]+)\)/g
   const preTokens: InlineToken[] = []
   let last = 0
   let match: RegExpExecArray | null
@@ -225,25 +225,26 @@ const preserveProjectHyperlinksFromSource = (markdown: string, resumeSource: str
   const lines = String(markdown || '').replace(/\r/g, '\n').split('\n')
   let currentSection = ''
   const output = lines.map((raw) => {
+    const indent = raw.match(/^\s*/)?.[0] || ''
     const line = raw.trim()
     if (/^##\s+/.test(line)) {
       currentSection = normalizeSectionKey(line)
       return raw
     }
     if (currentSection !== 'projects') return raw
-    if (!/^###\s+/.test(line)) return raw
+    if (!line) return raw
+    if (/^(\s*)([-*]|\d+[.)])\s+/.test(line)) return raw
 
     const titleText = line.replace(/^###\s+/, '').trim()
-    if (/\[[^\]]+\]\((https?:\/\/|mailto:)[^)]+\)/i.test(titleText)) return raw
-
+    const linkedMatch = titleText.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)\s*(?:\|\s*(.+))?$/i)
     const parts = titleText.split('|').map((part) => part.trim()).filter(Boolean)
-    const titleOnly = parts[0] || titleText
+    const titleOnly = linkedMatch ? String(linkedMatch[1] || '').trim() : parts[0] || titleText
     const key = normalizeLooseTitle(titleOnly)
     const sourceLink = sourceLinks.get(key)
     if (!sourceLink) return raw
-    const date = parts.slice(1).join(' | ') || sourceLink.date
+    const date = linkedMatch ? String(linkedMatch[3] || '').trim() || sourceLink.date : parts.slice(1).join(' | ') || sourceLink.date
     const linkedTitle = `[${sourceLink.title}](${sourceLink.url})`
-    return `### ${date ? `${linkedTitle} | ${date}` : linkedTitle}`
+    return `${indent}### ${date ? `${linkedTitle} | ${date}` : linkedTitle}`
   })
   return output.join('\n')
 }
@@ -352,6 +353,17 @@ const extractProfileUrls = (text: string): { linkedin: string; github: string; p
     }
   }
   return { linkedin, github, portfolio }
+}
+
+const normalizeProfileLabeledLinks = (markdown: string, resumeSource: string): string => {
+  const profileUrls = extractProfileUrls(resumeSource || markdown)
+  return String(markdown || '').replace(/\[(linkedin|github|portfolio)\]\((?:https?:\/\/|mailto:)[^)]+\)/gi, (full, rawLabel: string) => {
+    const label = String(rawLabel || '').toLowerCase()
+    if (label === 'linkedin' && profileUrls.linkedin) return `[LinkedIn](${profileUrls.linkedin})`
+    if (label === 'github' && profileUrls.github) return `[GitHub](${profileUrls.github})`
+    if (label === 'portfolio' && profileUrls.portfolio) return `[Portfolio](${profileUrls.portfolio})`
+    return full
+  })
 }
 
 const isLikelyLocationToken = (value: string): boolean => {
@@ -1208,16 +1220,50 @@ const removeBlankLineBeforeHeadings = (markdown: string): string => {
   return output.join('\n')
 }
 
+const looksLikeExperienceRoleLine = (line: string): boolean => {
+  const text = String(line || '').trim().replace(/^###\s+/, '')
+  if (!text) return false
+  if (/^(\s*)([-*]|\d+[.)])\s+/.test(text)) return false
+  if (!text.includes('|')) return false
+  const hasDate = /\b(19|20)\d{2}\b/.test(text) || /\bpresent\b/i.test(text)
+  if (!hasDate) return false
+  return /(engineer|developer|architect|scientist|analyst|manager|lead|founding)/i.test(text)
+}
+
+const ensureWorkExperienceHeadingBeforeRoles = (markdown: string, resumeSource: string): string => {
+  const hasSourceExperience = /(^|\n)\s*##?\s*WORK EXPERIENCE\b/i.test(String(resumeSource || ''))
+  if (!hasSourceExperience) return markdown
+  const lines = String(markdown || '').replace(/\r/g, '\n').split('\n')
+  const alreadyHasExperience = lines.some((raw) => /^##\s+WORK EXPERIENCE\s*$/i.test(raw.trim()))
+  if (alreadyHasExperience) return markdown
+
+  let insertIndex = -1
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index].trim()
+    if (!line) continue
+    if (looksLikeExperienceRoleLine(line)) {
+      insertIndex = index
+      break
+    }
+  }
+  if (insertIndex < 0) return markdown
+  const next = [...lines]
+  next.splice(insertIndex, 0, '## WORK EXPERIENCE')
+  return next.join('\n')
+}
+
 const finalizeGeneratedMarkdown = (markdown: string, resumeSource: string): string => {
   const withNoLinkStars = stripBoldAroundLinks(markdown)
   const withHierarchy = enforceResumeHeadingHierarchy(withNoLinkStars, resumeSource)
   const withoutBoldMarkers = stripMarkdownBoldMarkers(withHierarchy)
   const withTitleDate = normalizeGithubTitleDateLayout(withoutBoldMarkers)
-  const withHeaderLinks = normalizeHeaderContactLinks(withTitleDate, resumeSource)
+  const withFixedProfileLinks = normalizeProfileLabeledLinks(withTitleDate, resumeSource)
+  const withHeaderLinks = normalizeHeaderContactLinks(withFixedProfileLinks, resumeSource)
   const withAlignedBullets = normalizeBulletMarkers(withHeaderLinks)
   const withMissingSectionsRestored = ensureSourceSectionsPresent(withAlignedBullets, resumeSource)
   const withSourceOrder = reorderGeneratedSectionsToSourceOrder(withMissingSectionsRestored, resumeSource)
-  const withNoSkillsBullets = removeSkillsBullets(withSourceOrder)
+  const withExperienceHeading = ensureWorkExperienceHeadingBeforeRoles(withSourceOrder, resumeSource)
+  const withNoSkillsBullets = removeSkillsBullets(withExperienceHeading)
   const withProjectLinks = preserveProjectHyperlinksFromSource(withNoSkillsBullets, resumeSource)
   const withNaturalTitleCase = normalizeRoleAndProjectTitleCasing(withProjectLinks)
   const withProjectMinimumBullets = ensureProjectMinimumBullets(withNaturalTitleCase)
@@ -1366,6 +1412,16 @@ const fileToDataUrl = (file: File): Promise<string> =>
     reader.readAsDataURL(file)
   })
 
+const uint8ToBase64 = (bytes: Uint8Array): string => {
+  let binary = ''
+  const chunkSize = 0x8000
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    const chunk = bytes.subarray(index, index + chunkSize)
+    binary += String.fromCharCode(...chunk)
+  }
+  return window.btoa(binary)
+}
+
 export default function ResumeStudio() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -1465,9 +1521,8 @@ export default function ResumeStudio() {
   useEffect(() => {
     if (!resumeFileName) return
     const nextName = toDownloadStem(resumeFileName)
-    if (toDownloadStem(downloadFileName) === nextName) return
     setDownloadFileName(nextName)
-  }, [resumeFileName, downloadFileName])
+  }, [resumeFileName])
 
   useEffect(() => {
     if (loading) return
@@ -1639,7 +1694,7 @@ export default function ResumeStudio() {
 
     const drawWrapped = (
       text: string,
-      options: { bold?: boolean; color?: ReturnType<typeof pdf.rgb>; listPrefix?: string; align?: 'left' | 'center'; size?: number } = {},
+      options: { bold?: boolean; color?: ReturnType<typeof pdf.rgb>; listPrefix?: string; align?: 'left' | 'center' | 'justify'; size?: number } = {},
     ) => {
       const safe = text || ''
       const firstPrefix = options.listPrefix || ''
@@ -1662,7 +1717,8 @@ export default function ResumeStudio() {
       if (current) lines.push(current)
       if (lines.length === 0) lines.push('')
 
-      for (const line of lines) {
+      for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+        const line = lines[lineIndex]
         if (y < marginBottom + fontSize) {
           page = doc.addPage([pageWidth, pageHeight])
           y = pageHeight - marginTop
@@ -1670,20 +1726,48 @@ export default function ResumeStudio() {
         const drawFont = options.bold ? fontBold : font
         const width = drawFont.widthOfTextAtSize(line, fontSize)
         const x = options.align === 'center' ? Math.max(marginX, (pageWidth - width) / 2) : marginX
-        page.drawText(line, {
-          x,
-          y,
-          size: fontSize,
-          font: drawFont,
-          color: options.color || dark,
-        })
+        const shouldJustify = options.align === 'justify' && lineIndex !== lines.length - 1 && !options.listPrefix
+        if (shouldJustify && /\s/.test(line)) {
+          const words = line.trim().split(/\s+/).filter(Boolean)
+          if (words.length > 1) {
+            const wordsWidth = words.reduce((sum, word) => sum + drawFont.widthOfTextAtSize(word, fontSize), 0)
+            const gap = Math.max(0, (maxWidth - wordsWidth) / (words.length - 1))
+            let cursorX = marginX
+            for (const word of words) {
+              page.drawText(word, {
+                x: cursorX,
+                y,
+                size: fontSize,
+                font: drawFont,
+                color: options.color || dark,
+              })
+              cursorX += drawFont.widthOfTextAtSize(word, fontSize) + gap
+            }
+          } else {
+            page.drawText(line, {
+              x,
+              y,
+              size: fontSize,
+              font: drawFont,
+              color: options.color || dark,
+            })
+          }
+        } else {
+          page.drawText(line, {
+            x,
+            y,
+            size: fontSize,
+            font: drawFont,
+            color: options.color || dark,
+          })
+        }
         y -= fontSize + lineGap
       }
     }
 
     const drawMixedNoBoldDates = (
       text: string,
-      options: { bold?: boolean; color?: ReturnType<typeof pdf.rgb>; align?: 'left' | 'center'; size?: number } = {},
+      options: { bold?: boolean; color?: ReturnType<typeof pdf.rgb>; align?: 'left' | 'center' | 'justify'; size?: number } = {},
     ) => {
       const safe = String(text || '')
       const fontSize = options.size || bodySize
@@ -1738,6 +1822,10 @@ export default function ResumeStudio() {
         if (line.level === 1) {
           if (hasDateRangeText(headingText)) drawMixedNoBoldDates(headingText, { bold: true, color: dark, align: 'center', size: 14 })
           else drawWrapped(headingText, { bold: true, color: dark, align: 'center', size: 14 })
+        } else if (line.level === 3 && line.tokens.some((token) => token.type === 'link')) {
+          const plainHeadingText = line.tokens.map((token) => token.text).join('')
+          if (hasDateRangeText(plainHeadingText)) drawMixedNoBoldDates(plainHeadingText, { bold: true, color: dark, size: 10 })
+          else drawWrapped(plainHeadingText, { bold: true, color: dark, size: 10 })
         } else {
           if (hasDateRangeText(headingText)) drawMixedNoBoldDates(headingText, { bold: true, color: dark, size: 10 })
           else drawWrapped(headingText, { bold: true, color: dark, size: 10 })
@@ -1752,8 +1840,8 @@ export default function ResumeStudio() {
       const drawOpts = {
         listPrefix,
         bold: shouldBoldLine,
-        align: isHeaderContact ? ('center' as const) : ('left' as const),
-        color: line.tokens.some((token) => token.type === 'link') ? blue : dark,
+        align: isHeaderContact ? ('center' as const) : ('justify' as const),
+        color: dark,
       }
       if (!listPrefix && shouldBoldLine && hasDateRangeText(lineText)) drawMixedNoBoldDates(lineText, drawOpts)
       else drawWrapped(lineText, drawOpts)
@@ -1764,12 +1852,7 @@ export default function ResumeStudio() {
     return doc.save()
   }
 
-  const downloadDocx = async () => {
-    if (!generatedMarkdown.trim()) return setMessage('Generate resume first.')
-    setDownloading('docx')
-    const fileStem = toDownloadStem(downloadFileName || resumeFileName)
-    try {
-      const markdownForExport = finalizeGeneratedMarkdown(generatedMarkdown, resumeText)
+  const createDocxBlob = async (markdownForExport: string): Promise<Blob> => {
       const docx = await import('docx')
       const blue = '0563C1'
       const dark = '111111'
@@ -1818,6 +1901,39 @@ export default function ResumeStudio() {
               : line.level === 2
                 ? { before: 120, after: 40, line: 240, lineRule: docx.LineRuleType.AUTO }
                 : { before: 60, after: 60, line: 240, lineRule: docx.LineRuleType.AUTO }
+          const headingChildren: Array<InstanceType<typeof docx.TextRun> | InstanceType<typeof docx.ExternalHyperlink>> = []
+          for (const token of line.tokens) {
+            if (token.type === 'link') {
+              headingChildren.push(
+                new docx.ExternalHyperlink({
+                  link: token.url,
+                  children: [
+                    new docx.TextRun({
+                      text: token.text,
+                      font: selectedFont,
+                      size: line.level === 1 ? 28 : 20,
+                      color: blue,
+                      bold: true,
+                      underline: {},
+                    }),
+                  ],
+                }),
+              )
+              continue
+            }
+            const segments = splitTextByDateRanges(token.text)
+            for (const segment of segments) {
+              headingChildren.push(
+                new docx.TextRun({
+                  text: segment.text,
+                  font: selectedFont,
+                  size: line.level === 1 ? 28 : 20,
+                  bold: segment.isDate ? false : true,
+                  color: dark,
+                }),
+              )
+            }
+          }
           children.push(
             new docx.Paragraph({
               heading: headingLevel,
@@ -1825,16 +1941,7 @@ export default function ResumeStudio() {
               alignment: line.level === 1 ? docx.AlignmentType.CENTER : undefined,
               contextualSpacing: true,
               spacing: headingSpacing,
-              children: splitTextByDateRanges(headingText).map(
-                (segment) =>
-                  new docx.TextRun({
-                    text: segment.text,
-                    font: selectedFont,
-                    size: line.level === 1 ? 28 : 20,
-                    bold: segment.isDate ? false : true,
-                    color: dark,
-                  }),
-              ),
+              children: headingChildren,
             }),
           )
           nonEmptyExportLines += 1
@@ -1881,7 +1988,7 @@ export default function ResumeStudio() {
         }
 
         const paragraphChildren: Array<InstanceType<typeof docx.TextRun> | InstanceType<typeof docx.ExternalHyperlink>> = []
-        let bullet: { level: number } | undefined
+        let numbering: { reference: string; level: number } | undefined
         if (line.type === 'bullet') {
           if (line.marker === 'ordered') {
             paragraphChildren.push(
@@ -1893,13 +2000,13 @@ export default function ResumeStudio() {
               }),
             )
           } else {
-            bullet = { level: 0 }
+            numbering = { reference: 'resume-bullets', level: 0 }
           }
         }
         paragraphChildren.push(...childrenRuns)
         children.push(
           new docx.Paragraph({
-            bullet,
+            numbering,
             contextualSpacing: true,
             alignment: isHeaderContact ? docx.AlignmentType.CENTER : docx.AlignmentType.JUSTIFIED,
             spacing: { before: 0, after: 60, line: 240, lineRule: docx.LineRuleType.AUTO },
@@ -1910,6 +2017,35 @@ export default function ResumeStudio() {
       }
 
       const document = new docx.Document({
+        numbering: {
+          config: [
+            {
+              reference: 'resume-bullets',
+              levels: [
+                {
+                  level: 0,
+                  format: docx.LevelFormat.BULLET,
+                  text: '\u25CF',
+                  alignment: docx.AlignmentType.LEFT,
+                  suffix: docx.LevelSuffix.SPACE,
+                  style: {
+                    paragraph: {
+                      indent: {
+                        left: 360,
+                        hanging: 180,
+                      },
+                    },
+                    run: {
+                      font: selectedFont,
+                      size: 16, // 8pt bullet marker
+                      color: dark,
+                    },
+                  },
+                },
+              ],
+            },
+          ],
+        },
         sections: [
           {
             properties: {
@@ -1930,7 +2066,16 @@ export default function ResumeStudio() {
           },
         ],
       })
-      const blob = await docx.Packer.toBlob(document)
+      return docx.Packer.toBlob(document)
+  }
+
+  const downloadDocx = async () => {
+    if (!generatedMarkdown.trim()) return setMessage('Generate resume first.')
+    setDownloading('docx')
+    const fileStem = toDownloadStem(downloadFileName || resumeFileName)
+    try {
+      const markdownForExport = finalizeGeneratedMarkdown(generatedMarkdown, resumeText)
+      const blob = await createDocxBlob(markdownForExport)
       downloadBlob(blob, `${fileStem}.docx`)
     } catch {
       setMessage('Failed to create DOCX download')
@@ -1945,13 +2090,28 @@ export default function ResumeStudio() {
     const fileStem = toDownloadStem(downloadFileName || resumeFileName)
     try {
       const markdownForExport = finalizeGeneratedMarkdown(generatedMarkdown, resumeText)
-      const pdfBytes = await buildPdfBytes(markdownForExport, selectedFont)
-      // Re-wrap into a fresh Uint8Array backed by ArrayBuffer to satisfy BlobPart typing.
-      const pdfPayload = new Uint8Array(pdfBytes.byteLength)
-      pdfPayload.set(pdfBytes)
-      downloadBlob(new Blob([pdfPayload], { type: 'application/pdf' }), `${fileStem}.pdf`)
-    } catch {
-      setMessage('Failed to create PDF download')
+      const docxBlob = await createDocxBlob(markdownForExport)
+      const docxBytes = new Uint8Array(await docxBlob.arrayBuffer())
+      const response = await fetch('/api/user/convert-word-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: fileStem,
+          docxBase64: uint8ToBase64(docxBytes),
+        }),
+      })
+      if (!response.ok) {
+        const contentType = String(response.headers.get('content-type') || '')
+        const message = contentType.includes('application/json')
+          ? String(((await response.json()) as { error?: string }).error || '')
+          : String(await response.text())
+        throw new Error(message || 'Word-based PDF conversion failed')
+      }
+      const pdfBlob = await response.blob()
+      downloadBlob(pdfBlob, `${fileStem}.pdf`)
+    } catch (error) {
+      const details = error instanceof Error ? error.message : ''
+      setMessage(details ? `PDF conversion failed: ${details}` : 'Failed to create PDF download via Word converter')
     } finally {
       setDownloading(null)
     }
@@ -2055,15 +2215,24 @@ export default function ResumeStudio() {
       const headingText = flattenTokens(line.tokens)
       return (
         <p key={key} className={`resume-preview-line ${headingClass}`}>
-          {splitTextByDateRanges(headingText).map((part, index) =>
-            part.isDate ? (
-              <span key={`${key}-heading-date-${index}`} className="resume-date-unbold">
-                {part.text}
-              </span>
-            ) : (
-              <span key={`${key}-heading-text-${index}`}>{part.text}</span>
-            ),
-          )}
+          {line.tokens.map((token, tokenIndex) => {
+            if (token.type === 'link') {
+              return (
+                <a key={`${key}-heading-link-${tokenIndex}`} className="resume-link" href={token.url} target="_blank" rel="noreferrer">
+                  {token.text}
+                </a>
+              )
+            }
+            return splitTextByDateRanges(token.text).map((part, partIndex) =>
+              part.isDate ? (
+                <span key={`${key}-heading-date-${tokenIndex}-${partIndex}`} className="resume-date-unbold">
+                  {part.text}
+                </span>
+              ) : (
+                <span key={`${key}-heading-text-${tokenIndex}-${partIndex}`}>{part.text}</span>
+              ),
+            )
+          })}
         </p>
       )
     }

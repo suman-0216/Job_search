@@ -100,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ats_prompt: '',
         template_markdown: '',
         generated_markdown: '',
-        selected_font: 'Arial',
+        selected_font: 'Calibri',
         download_file_name: defaultDownloadName || 'tailored_resume',
       },
       { onConflict: 'user_id' },
